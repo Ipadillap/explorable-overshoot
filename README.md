@@ -1,1 +1,2 @@
 # explorable-overshoot
+Proyecto enfocado en transformar la comprensión del sobregiro ecológico (Ecological Overshoot) a través de la interactividad. Mediante una interfaz intuitiva, limpia y visual, la aplicación permite a los usuarios manipular variables clave (como biocapacidad y huella ecológica) para explorar en tiempo real las causas y consecuencias del desgaste de los recursos del planeta. El objetivo central es democratizar conceptos ecológicos fundamentales, convirtiendo datos abstractos en una experiencia de aprendizaje dinámica, accesible e interactiva.

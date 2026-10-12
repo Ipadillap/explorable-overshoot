@@ -4,13 +4,13 @@ Una aplicación web interactiva diseñada para explorar y comprender el concepto
 
 ---
 
-##  Demo & Concepto
+##  Concepto
 
 El proyecto permite visualizar la interacción entre la **biocapacidad** de un ecosistema aislado (una isla modular basada en celdas de recursos) y la **huella ecológica** generada por una población en crecimiento (agentes conejos que consumen, se reproducen y se desplazan).
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
 * **Frontend:** [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
 * **Build Tool:** [Vite](https://vitejs.dev/)

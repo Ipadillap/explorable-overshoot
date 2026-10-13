@@ -9,7 +9,8 @@ interface ResourceSliderProps {
 
 export function ResourceSlider({label, value, min, max, step = 1, onChange}: ResourceSliderProps) {
     return (
-        <div className="h-full bg-white border border-[#DFE8E2] rounded-lg p-3 flex flex-col justify-between">
+        // <div className="h-full bg-white border border-[#DFE8E2] rounded-lg p-3 flex flex-col justify-between">
+        <div className="h-full p-3 flex flex-col justify-between">
             {/* Encabezado: Nombre del parámetro y valor actual */}
             <div className="flex justify-between items-center text-xs font-semibold text-slate-700">
                 <span>

@@ -1,27 +1,55 @@
 import { useState, useEffect } from 'react';
 import { simulationEngine } from '../simulation/SimulationEngine';
-import type {SimulationColor} from '../types/simulation';
 
 export function useSimulation() {
-  const [color, setColor] = useState<SimulationColor>(
-    () => simulationEngine.getState().color
-  );
+    const [, setTick] = useState(0);
 
-  useEffect(() => {
-    // React se suscribe solo para actualizar su botón/UI
-    const unsubscribe = simulationEngine.subscribe((state) => {
-      setColor(state.color);
-    });
+    useEffect(() => {
+        const unsubscribe = simulationEngine.subscribe(() => {
+            setTick((prev) => prev + 1);
+        });
 
-    return unsubscribe;
-  }, []);
+        return () => unsubscribe();
+    }, []);
 
-  const toggleColor = () => {
-    simulationEngine.toggleColor();
-  };
+    const updateInitialRabbits = (val: number) => {
+        simulationEngine.rabbitStats.updateInitialCount(val);
+        simulationEngine.initializeCicle();
+        simulationEngine.notify();
+    };
 
-  return {
-    color,
-    toggleColor,
-  };
+    const updateConsumptionRate = (val: number) => {
+        simulationEngine.rabbitStats.updateConsumptionRate(val);
+        simulationEngine.initializeCicle();
+        simulationEngine.notify();
+    };
+
+    const updateDeathRate = (val: number) => {
+        simulationEngine.rabbitStats.updateDeathRate(val);
+        simulationEngine.initializeCicle();
+        simulationEngine.notify();
+    };
+
+    const updateRegenerationRate = (val: number) => {
+        simulationEngine.grassStats.updateRegenerationRate(val);
+        simulationEngine.initializeCicle();
+        simulationEngine.notify();
+    };
+
+    const nextCicle = () => {
+        simulationEngine.cicleStart();
+        simulationEngine.notify();
+    };
+
+    return {
+        rabbitStats: simulationEngine.rabbitStats,
+        grassStats: simulationEngine.grassStats,
+        ecosystemMetrics: simulationEngine.ecosystemMetrics,
+
+        nextCicle,
+        updateInitialRabbits,
+        updateConsumptionRate,
+        updateDeathRate,
+        updateRegenerationRate,
+    };
 }

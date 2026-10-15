@@ -19,7 +19,7 @@ El proyecto permite visualizar la interacción entre la **biocapacidad** de un e
 
 ---
 
-## 🚀 Instalación y Ejecución Local
+## Instalación y Ejecución Local
 
 1. **Clonar el repositorio:**
    ```bash

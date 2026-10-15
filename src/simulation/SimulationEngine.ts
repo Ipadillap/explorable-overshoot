@@ -42,6 +42,7 @@ export class SimulationEngine {
 
     public subscribe(listener: () => void): () => void {
         this.listeners.add(listener);
+        this.initializeCicle();
         return () => this.listeners.delete(listener);
     }
 

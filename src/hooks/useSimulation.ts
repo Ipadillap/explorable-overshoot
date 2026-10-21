@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { simulationEngine } from '../simulation/SimulationEngine';
 
 export function useSimulation() {
+export function useSimulation() {
     const [, setTick] = useState(0);
 
     useEffect(() => {

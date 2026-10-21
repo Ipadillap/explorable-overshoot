@@ -4,6 +4,25 @@ import { HexagonBlock } from "./components/HexagonBlock";
 import { RabbitBlock } from "./components/RabbitBlock";
 import { useSimulation } from "../../../hooks/useSimulation.ts";
 import {SimulationCanvas} from "../../components/SimulationCanvas.tsx";
+import { useEffect, useState } from "react";
+
+const DESIGN_W = 1440;
+const DESIGN_H = 704;
+
+function useScaleToFit() {
+    const [scale, setScale] = useState(1);
+
+    useEffect(() => {
+        const update = () => {
+            setScale(Math.min(window.innerWidth / DESIGN_W, window.innerHeight / DESIGN_H) * 0.8);
+        };
+        update();
+        window.addEventListener("resize", update);
+        return () => window.removeEventListener("resize", update);
+    }, []);
+
+    return scale;
+}
 
 export function Phase2view() {
     const {
@@ -17,9 +36,15 @@ export function Phase2view() {
         updateRegenerationRate,
     } = useSimulation();
 
+    const scale = useScaleToFit();
+
     return (
         <main className="w-screen h-screen bg-cyan-900 flex items-center justify-center p-4 overflow-hidden">
-            <div className="w-full max-w-[1440px] max-h-[704px] aspect-[1440/704] grid grid-cols-[240px_804px_300px] gap-5 items-stretch justify-center">
+            <div
+                style={{ width: DESIGN_W, height: DESIGN_H, transform: `scale(${scale})`, transformOrigin: "center center" }}
+                className="bg-amber-300 grid grid-cols-[240px_804px_300px] gap-[20px] items-stretch justify-center shrink-0"
+            >
+
                 <aside className="h-full rounded-lg grid grid-rows-[432px_178px_34px] gap-4">
 
                     {/* Estado del ecosistema */}
@@ -59,9 +84,9 @@ export function Phase2view() {
                 </aside>
 
                 {/* Column 2: Lienzo de simulación (PixiJS irá aquí) */}
-                <section className="h-full bg-white border border-[#DFE8E2] rounded-lg flex flex-col justify-between p-4">
-                    <div className="h-full w-full   flex flex-col justify-center">
-                        <div className="w-full h-[456px] flex-col items-center gap-2">
+                <section className="h-full bg-white border border-[#DFE8E2] rounded-lg flex flex-col justify-between">
+                    <div className="h-full w-full  bg-blue-700 flex flex-col justify-center">
+                        <div className="w-[804px] h-[456px] bg-amber-200 flex items-center justify-center">
                             <SimulationCanvas />
                         </div>
                     </div>

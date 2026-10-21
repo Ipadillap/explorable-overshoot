@@ -12,11 +12,10 @@ export const PixiCanvas = () => {
             const instance = new Application();
 
             await instance.init({
-                resizeTo: window, // O las opciones que estés usando
+                resizeTo: containerRef.current!,
                 backgroundColor: 0x1099bb,
             });
 
-            // Si el componente se desmontó mientras init() resolvía, destruimos la instancia de forma segura
             if (!isMounted) {
                 instance.destroy(true, { children: true });
                 return;
@@ -32,12 +31,11 @@ export const PixiCanvas = () => {
 
         return () => {
             isMounted = false;
-            // Solo destruimos si la app terminó de inicializarse
             if (app) {
                 app.destroy(true, { children: true });
             }
         };
     }, []);
 
-    return <div ref={containerRef} />;
+    return <div ref={containerRef} className="w-full h-full" />;
 };

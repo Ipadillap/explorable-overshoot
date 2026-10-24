@@ -31,4 +31,18 @@ export class EcosystemMetrics {
         this.rabbitsMaxLC = rabbitsMaxLoadCapacity;
         this.overshootDegree = 0;
     }
+
+    public showActaulMetrics(): void {
+        console.log("-------------EcosystemMetrics-------------")
+        console.log("Actual Cycle: " + this.cycle);
+        console.log("Total Rabbits: " + this.totalRabbits);
+        console.log("Total Grass: " + this.totalGrass);
+        console.log("Biocapacity: " + this.biocapacity);
+        console.log("ecologicalFootprint: " + this.ecologicalFootprint);
+        console.log("consumedGrass: " + this.consumedGrass);
+        console.log("isOvershoot: " + this.isOvershoot);
+        console.log("overshootDegree: " + this.overshootDegree);
+        console.log("grassMaxLC: " + this.grassMaxLC);
+        console.log("rabbitsMaxLC: " + this.rabbitsMaxLC);
+    }
 }

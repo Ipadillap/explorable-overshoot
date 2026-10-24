@@ -15,12 +15,22 @@ export function calculateEcologicalFootprint(totalDemand: number): number {
     return totalDemand;
 }
 
-export function calculateBiocapacity(availableGrass: number, regenerationRate: number, maxCapacity: number): number {
+export function calculateBiocapacity(
+    availableGrass: number,
+    regenerationRate: number,
+    maxCapacity: number
+): number {
     if (maxCapacity === 0) return 0;
-    const logisticGrowth = regenerationRate * availableGrass * (1 - availableGrass / maxCapacity);
-    return Math.max(0, logisticGrowth);
-}
 
+    // 1. Crecimiento logístico teórico
+    const logisticGrowth = regenerationRate * availableGrass * (1 - availableGrass / maxCapacity);
+
+    // 2. Espacio real disponible para regenerar hasta el techo (maxCapacity)
+    const availableSpace = Math.max(0, maxCapacity - availableGrass);
+
+    // 3. La biocapacidad no puede superar el espacio restante ni ser negativa
+    return Math.max(0, Math.min(logisticGrowth, availableSpace));
+}
 export function calculateExpectedDeaths(rabbits: number, deathRate: number, satisfactionLevel: number): number {
     const naturalDeaths = deathRate;
 

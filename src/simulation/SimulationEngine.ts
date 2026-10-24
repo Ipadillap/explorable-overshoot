@@ -23,11 +23,11 @@ export class SimulationEngine {
         this.ecosystemMetrics = new EcosystemMetrics(
             1,
             5,
-            268,
+            600,
             1,
             1,
             1,
-            268,
+            600,
             1
         )
         this.rabbitStats = new RabbitStats(
@@ -73,9 +73,9 @@ export class SimulationEngine {
     }
 
     public cicleStart(): void {
-        this.initializeCicle();
         this.cicleEnd();
         this.initializeCicle();
+        this.ecosystemMetrics.showActaulMetrics();
     }
 
     public cicleEnd(): void {
@@ -93,9 +93,6 @@ export class SimulationEngine {
         const biocapacity = calculateBiocapacity(availableGrass, this.grassStats.regenerationRate, maxCapacity);
 
         const nextGrass = availableGrass - realConsumption + biocapacity;
-        console.log(availableGrass);
-        console.log(realConsumption);
-        console.log(nextGrass);
 
         this.ecosystemMetrics.cycle = this.ecosystemMetrics.cycle + 1;
         this.ecosystemMetrics.totalGrass = Math.min(
@@ -106,4 +103,4 @@ export class SimulationEngine {
     }
 }
 
-export const simulationEngine = new SimulationEngine();
+export const  simulationEngine = new SimulationEngine();

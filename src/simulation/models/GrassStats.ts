@@ -1,7 +1,7 @@
 export class GrassStats {
     public regenerationRate: number;
 
-    constructor(regenerationRate: number = 5,) {
+    constructor(regenerationRate: number = 1,) {
         this.regenerationRate = regenerationRate;
     }
 

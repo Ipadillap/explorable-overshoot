@@ -28,7 +28,7 @@ export class SimulationEngine {
             1,
             1,
             600,
-            1
+            300
         )
         this.rabbitStats = new RabbitStats(
             undefined,
@@ -50,16 +50,23 @@ export class SimulationEngine {
         this.listeners.forEach((listener) => listener());
     }
 
+    public nextCicle(): void {
+        this.cicleEnd();
+        this.initializeCicle();
+        this.ecosystemMetrics.showActaulMetrics();
+    }
+
     public initializeCicle(): void {
-        const rabbits = this.rabbitStats.initialCount;
+        const rabbits = this.ecosystemMetrics.totalRabbits;
+
         const availableGrass = this.ecosystemMetrics.totalGrass;
-        const maxCapacity = this.ecosystemMetrics.grassMaxLC;
+        const maxGrassCapacity = this.ecosystemMetrics.grassMaxLC;
 
         const totalDemand = calculateTotalDemand(rabbits, this.rabbitStats.consumptionRate);
         const realConsumption = calculateRealConsumption(totalDemand, availableGrass);
 
         const ecologicalFootprint = calculateEcologicalFootprint(totalDemand);
-        const biocapacity = calculateBiocapacity(availableGrass, this.grassStats.regenerationRate, maxCapacity);
+        const biocapacity = calculateBiocapacity(availableGrass, this.grassStats.regenerationRate, maxGrassCapacity);
 
         const overshootDegree = calculateOvershootDegree();
 
@@ -72,34 +79,31 @@ export class SimulationEngine {
         this.notify();
     }
 
-    public cicleStart(): void {
-        this.cicleEnd();
-        this.initializeCicle();
-        this.ecosystemMetrics.showActaulMetrics();
-    }
-
     public cicleEnd(): void {
         const rabbits = this.ecosystemMetrics.totalRabbits;
+        const maxRabbitsCapacity = this.ecosystemMetrics.rabbitsMaxLC;
+
         const availableGrass = this.ecosystemMetrics.totalGrass;
-        const maxCapacity = this.ecosystemMetrics.grassMaxLC;
+        const maxGrassCapacity = this.ecosystemMetrics.grassMaxLC;
 
         const totalDemand = calculateTotalDemand(rabbits, this.rabbitStats.consumptionRate);
         const realConsumption = calculateRealConsumption(totalDemand, availableGrass);
 
         const satisfaction = calculateSatisfactionLevel(realConsumption, totalDemand);
+        console.log(satisfaction);
         const expectedDeaths = calculateExpectedDeaths(rabbits, this.rabbitStats.deathRate, satisfaction);
         const expectedBirths = calculateExpectedBirths(realConsumption, this.rabbitStats.conversionRate);
 
-        const biocapacity = calculateBiocapacity(availableGrass, this.grassStats.regenerationRate, maxCapacity);
+        const biocapacity = calculateBiocapacity(availableGrass, this.grassStats.regenerationRate, maxGrassCapacity);
 
         const nextGrass = availableGrass - realConsumption + biocapacity;
 
         this.ecosystemMetrics.cycle = this.ecosystemMetrics.cycle + 1;
         this.ecosystemMetrics.totalGrass = Math.min(
-            maxCapacity,
+            maxGrassCapacity,
             Math.max(0, Math.round(nextGrass))
         );
-        this.ecosystemMetrics.totalRabbits = rabbits - expectedDeaths + expectedBirths;
+        this.ecosystemMetrics.totalRabbits = Math.max(0, Math.min(maxRabbitsCapacity, rabbits - expectedDeaths + expectedBirths));
     }
 }
 

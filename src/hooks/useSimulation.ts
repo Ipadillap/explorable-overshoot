@@ -14,6 +14,9 @@ export function useSimulation() {
 
     const updateInitialRabbits = (val: number) => {
         simulationEngine.rabbitStats.updateInitialCount(val);
+        if (simulationEngine.ecosystemMetrics.cycle === 1) {
+            simulationEngine.ecosystemMetrics.totalRabbits = val;
+        }
         simulationEngine.initializeCicle();
         simulationEngine.notify();
     };
@@ -37,7 +40,7 @@ export function useSimulation() {
     };
 
     const nextCicle = () => {
-        simulationEngine.cicleStart();
+        simulationEngine.nextCicle();
         simulationEngine.notify();
     };
 

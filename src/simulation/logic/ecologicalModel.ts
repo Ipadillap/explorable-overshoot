@@ -8,7 +8,7 @@ export function calculateRealConsumption(totalDemand: number, availableGrass: nu
 
 export function calculateSatisfactionLevel(realConsumption: number, totalDemand: number): number {
     if (totalDemand === 0) return 1;
-    return realConsumption / totalDemand;
+    return realConsumption/totalDemand;
 }
 
 export function calculateEcologicalFootprint(totalDemand: number): number {
@@ -22,28 +22,37 @@ export function calculateBiocapacity(
 ): number {
     if (maxCapacity === 0) return 0;
 
-    // 1. Crecimiento logístico teórico
-    const logisticGrowth = regenerationRate * availableGrass * (1 - availableGrass / maxCapacity);
+    const potentialRegeneration = regenerationRate * availableGrass;
 
-    // 2. Espacio real disponible para regenerar hasta el techo (maxCapacity)
     const availableSpace = Math.max(0, maxCapacity - availableGrass);
 
-    // 3. La biocapacidad no puede superar el espacio restante ni ser negativa
-    return Math.max(0, Math.min(logisticGrowth, availableSpace));
-}
-export function calculateExpectedDeaths(rabbits: number, deathRate: number, satisfactionLevel: number): number {
-    const naturalDeaths = deathRate;
-
-    const starvationDeaths = rabbits * (1 - satisfactionLevel);
-
-    const totalDeaths = naturalDeaths + starvationDeaths;
-    return Math.min(rabbits, Math.round(totalDeaths));
+    return Math.max(0, Math.min(potentialRegeneration, availableSpace));
 }
 
-export function calculateExpectedBirths(realConsumption: number, conversionRate: number): number {
-    if (conversionRate <= 0) return 0;
-    const births = realConsumption / conversionRate;
-    return Math.floor(births);
+export function calculateExpectedDeaths(
+    rabbits: number,
+    deathRate: number,
+    satisfactionLevel: number
+): number {
+
+    if (satisfactionLevel === 1) {
+        return (deathRate);
+    }
+
+    const starvationDeaths = Math.floor(rabbits * (1 - satisfactionLevel));
+    console.log("Muerte por hambre en ciclo anterior: " + starvationDeaths);
+
+    const totalDeaths = deathRate + starvationDeaths;
+
+    return Math.min(rabbits, totalDeaths);
+}
+
+export function calculateExpectedBirths(
+    realConsumption: number,
+    conversionRate: number
+): number {
+    if (realConsumption === 0) return 0;
+    return Math.floor( realConsumption / conversionRate);
 }
 
 export function calculateOvershootDegree(): 0 | 1 | 2 | 3 {

@@ -1,4 +1,3 @@
-// src/views/Phase2view.tsx
 import { useRef, useEffect, useState } from "react";
 import { ResourceSlider } from "./components/ResourceSlider";
 import { SimulationButton } from "./components/SimulationButton";
@@ -40,22 +39,12 @@ export function Phase2view() {
     const scale = useScaleToFit();
     const canvasRef = useRef<SimulationCanvasRef>(null);
 
-    // Estado para bloquear/desbloquear todos los sliders
-    const [isBlocked, setIsBlocked] = useState<boolean>(false);
-
-    // Toggle simple para alterar el estado de bloqueo
-    const toggleBlockSliders = () => {
-        setIsBlocked((prev) => !prev);
-    };
-
-    // Función envolvente para avanzar ciclo matemático y visual sincrónicamente
     const handleNextCycle = () => {
         if (canvasRef.current) {
             // Aplicar consumo de pasto
             canvasRef.current.endCycle(ecosystemMetrics.consumedGrass);
         }
 
-        // Avanzar métricas matemáticas en el SimulationEngine
         nextCicle();
 
         if (canvasRef.current) {
@@ -71,6 +60,7 @@ export function Phase2view() {
                     style={{ width: DESIGN_W, height: DESIGN_H, transform: `scale(${scale})`, transformOrigin: "center center" }}
                     className="grid grid-cols-[240px_804px_300px] gap-[20px] items-stretch justify-center shrink-0"
                 >
+                    {/* Información de ciclo */}
                     <aside className="h-full rounded-lg grid grid-rows-[432px_178px_34px] gap-4">
                         {/* Estado del ecosistema */}
                         <div className="bg-[#ffffff] border border-[#DFE8E2] rounded-lg flex flex-col justify-around">
@@ -152,7 +142,6 @@ export function Phase2view() {
                                     value={rabbitStats.initialCount}
                                     min={1}
                                     max={10}
-                                    isBlocked={isBlocked}
                                     onChange={updateInitialRabbits}
                                 />
                             </div>
@@ -165,7 +154,6 @@ export function Phase2view() {
                                     value={rabbitStats.consumptionRate}
                                     min={1}
                                     max={10}
-                                    isBlocked={isBlocked}
                                     onChange={updateConsumptionRate}
                                 />
                             </div>
@@ -178,7 +166,6 @@ export function Phase2view() {
                                     value={rabbitStats.deathRate}
                                     min={1}
                                     max={10}
-                                    isBlocked={isBlocked}
                                     onChange={updateDeathRate}
                                 />
                             </div>
@@ -192,27 +179,13 @@ export function Phase2view() {
                                     min={0}
                                     max={1}
                                     step={0.1}
-                                    isBlocked={isBlocked}
                                     onChange={updateRegenerationRate}
                                 />
                             </div>
-
-                            {/* Botón simple para Bloquear / Desbloquear controles */}
-                            <button
-                                onClick={toggleBlockSliders}
-                                className={`mt-3 px-4 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 border ${
-                                    isBlocked
-                                        ? "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200"
-                                        : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
-                                }`}
-                            >
-                                {isBlocked ? "Desbloquear Sliders" : "Bloquear Sliders"}
-                            </button>
                         </div>
 
                         <div className="w-full h-px bg-[#DFE8E2] my-2" />
 
-                        {/* Botones de control */}
                         <div className="w-[260px] grid grid-cols-2 grid-rows-2 gap-4 place-items-center">
                             <div className="w-24">
                                 <SimulationButton icon={1} label="Play" />

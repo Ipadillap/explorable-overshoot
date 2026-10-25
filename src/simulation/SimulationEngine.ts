@@ -29,7 +29,7 @@ export class SimulationEngine {
             1,
             600,
             300
-        )
+        );
         this.rabbitStats = new RabbitStats(
             undefined,
             undefined,
@@ -48,12 +48,6 @@ export class SimulationEngine {
 
     public notify(): void {
         this.listeners.forEach((listener) => listener());
-    }
-
-    public nextCicle(): void {
-        this.cicleEnd();
-        this.initializeCicle();
-        this.ecosystemMetrics.showActaulMetrics();
     }
 
     public initializeCicle(): void {
@@ -90,7 +84,7 @@ export class SimulationEngine {
         const realConsumption = calculateRealConsumption(totalDemand, availableGrass);
 
         const satisfaction = calculateSatisfactionLevel(realConsumption, totalDemand);
-        console.log(satisfaction);
+
         const expectedDeaths = calculateExpectedDeaths(rabbits, this.rabbitStats.deathRate, satisfaction);
         const expectedBirths = calculateExpectedBirths(realConsumption, this.rabbitStats.conversionRate);
 
@@ -103,8 +97,12 @@ export class SimulationEngine {
             maxGrassCapacity,
             Math.max(0, Math.round(nextGrass))
         );
-        this.ecosystemMetrics.totalRabbits = Math.max(0, Math.min(maxRabbitsCapacity, rabbits - expectedDeaths + expectedBirths));
+
+        this.ecosystemMetrics.totalRabbits = Math.max(
+            0,
+            Math.min(maxRabbitsCapacity, rabbits - expectedDeaths + expectedBirths)
+        );
     }
 }
 
-export const  simulationEngine = new SimulationEngine();
+export const simulationEngine = new SimulationEngine();

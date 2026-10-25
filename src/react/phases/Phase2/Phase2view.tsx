@@ -1,10 +1,10 @@
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ResourceSlider } from "./components/ResourceSlider";
 import { SimulationButton } from "./components/SimulationButton";
 import { HexagonBlock } from "./components/HexagonBlock";
 import { RabbitBlock } from "./components/RabbitBlock";
 import { useSimulation } from "../../../hooks/useSimulation.ts";
-import { SimulationCanvas, type SimulationCanvasRef } from "../../components/SimulationCanvas.tsx";
+import { SimulationCanvas } from "../../components/SimulationCanvas.tsx";
 
 const DESIGN_W = 1440;
 const DESIGN_H = 704;
@@ -26,9 +26,11 @@ function useScaleToFit() {
 
 export function Phase2view() {
     const {
+        canvasRef,
         rabbitStats,
         grassStats,
         ecosystemMetrics,
+        createIsland,
         nextCicle,
         updateInitialRabbits,
         updateConsumptionRate,
@@ -37,21 +39,10 @@ export function Phase2view() {
     } = useSimulation();
 
     const scale = useScaleToFit();
-    const canvasRef = useRef<SimulationCanvasRef>(null);
 
-    const handleNextCycle = () => {
-        if (canvasRef.current) {
-            // Aplicar consumo de pasto
-            canvasRef.current.endCycle(ecosystemMetrics.consumedGrass);
-        }
-
-        nextCicle();
-
-        if (canvasRef.current) {
-            // Iniciar regeneración de biocapacidad en la isla
-            canvasRef.current.startCycle(ecosystemMetrics.biocapacity);
-        }
-    };
+    useEffect(() => {
+        createIsland();
+    }, []);
 
     return (
         <main className="relative w-screen h-screen overflow-hidden flex items-center justify-center">
@@ -100,13 +91,13 @@ export function Phase2view() {
 
                     {/* Lienzo de simulación */}
                     <section className="h-full rounded-lg flex flex-col justify-between">
+
+                        {/* Representación visual */}
                         <div className="h-full w-full flex flex-col justify-center">
-                            <div className="w-[804px] h-[602px] flex items-center justify-center">
-                                <SimulationCanvas
-                                    ref={canvasRef}
-                                    ecosystemMetrics={ecosystemMetrics}
-                                />
-                            </div>
+                            <SimulationCanvas
+                                ref={canvasRef}
+                                onReady={createIsland}
+                            />
                         </div>
 
                         {/* Resumen de simulación */}
@@ -128,7 +119,9 @@ export function Phase2view() {
 
                             <div className="w-[174px] h-[42px] flex flex-row items-center gap-3 justify-center">
                                 <HexagonBlock color="#f5e3de" />
-                                <p className="font-bold">{Math.max(0, ecosystemMetrics.grassMaxLC - ecosystemMetrics.totalGrass - ecosystemMetrics.biocapacity)}</p>
+                                <p className="font-bold">
+                                    {Math.max(0, ecosystemMetrics.grassMaxLC - ecosystemMetrics.totalGrass + ecosystemMetrics.biocapacity)}
+                                </p>
                             </div>
                         </div>
                     </section>
@@ -194,7 +187,7 @@ export function Phase2view() {
                                 <SimulationButton icon={2} label="Stop" />
                             </div>
                             <div className="w-24">
-                                <SimulationButton icon={3} label="Next" onClick={handleNextCycle} />
+                                <SimulationButton icon={3} label="Next" onClick={nextCicle} />
                             </div>
                             <div className="w-24">
                                 <SimulationButton icon={4} label="Reboot" />

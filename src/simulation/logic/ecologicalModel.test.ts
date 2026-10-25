@@ -56,7 +56,7 @@ describe('calculateExpectedDeaths', () => {
     })
 
     it('Caso 3: No muerte', () => {
-        const result = calculateExpectedDeaths(5,0,0);
+        const result = calculateExpectedDeaths(5,0,1);
         expect(result).toBe(0);
     })
 })

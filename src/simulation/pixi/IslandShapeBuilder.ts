@@ -1,6 +1,6 @@
 // src/simulation/pixi/IslandShapeBuilder.ts
 import { Polygon } from './Polygon';
-import { MAP_600 } from './IslandCoordinates.ts';
+import { MAP_600 } from './islandCordinates/IslandCoordinates.ts';
 
 export interface IslandGridData {
     polygons: Polygon[];

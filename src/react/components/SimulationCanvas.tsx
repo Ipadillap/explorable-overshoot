@@ -1,4 +1,3 @@
-// src/simulation/components/SimulationCanvas.tsx
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import * as PIXI from 'pixi.js';
 import type { EcosystemMetrics } from '../../simulation/models/EcosystemMetrics.ts';
@@ -8,32 +7,80 @@ import { IslandShapeBuilder } from '../../simulation/pixi/IslandShapeBuilder.ts'
 const CANVAS_WIDTH = 804;
 const CANVAS_HEIGHT = 540;
 
-export interface SimulationCanvasRef {
-    startCycle: (regeneratingUnits: number) => void;
-    endCycle: (consumedGrassUnits: number) => void;
-    setInitialGrass: () => void;
+interface SimulationCanvasProps {
+    onReady?: () => void;
 }
 
-interface SimulationCanvasProps {
-    ecosystemMetrics: EcosystemMetrics;
+export interface SimulationCanvasRef {
+    createIsland: (metrics: EcosystemMetrics) => void;
+    getCapacity: () => number | undefined;
+    setInitialGrass: () => void;
+    endCycle: (consumedGrassUnits: number) => void;
+    startCycle: (regeneratingUnits: number) => void;
+    destroyIsland: () => void;
 }
 
 export const SimulationCanvas = forwardRef<SimulationCanvasRef, SimulationCanvasProps>(
-    ({ ecosystemMetrics }, ref) => {
+    ({ onReady }, ref) => {
         const containerRef = useRef<HTMLDivElement>(null);
         const appRef = useRef<PIXI.Application | null>(null);
         const islandRef = useRef<Island | null>(null);
 
-        // Exponer los métodos de la Isla al componente padre
         useImperativeHandle(ref, () => ({
-            startCycle: (regeneratingUnits: number) => {
-                islandRef.current?.startCycle(regeneratingUnits);
+            createIsland: (metrics: EcosystemMetrics) => {
+                const app = appRef.current;
+                if (!app) return;
+
+                // Si ya existe una isla previa, se remueve y destruye
+                if (islandRef.current) {
+                    app.stage.removeChild(islandRef.current);
+                    islandRef.current.destroy({ children: true });
+                    islandRef.current = null;
+                }
+
+                const island = new Island({
+                    cellGap: 1,
+                    metrics
+                });
+                islandRef.current = island;
+
+                // Escalado y centrado proporcional
+                const gridData = IslandShapeBuilder.buildGrid(0.5);
+                const paddingFactor = 0.9;
+
+                const scaleX = (CANVAS_WIDTH * paddingFactor) / gridData.totalWidth;
+                const scaleY = (CANVAS_HEIGHT * paddingFactor) / gridData.totalHeight;
+                const fitScale = Math.min(scaleX, scaleY);
+
+                island.scale.set(fitScale);
+                island.x = CANVAS_WIDTH / 2;
+                island.y = CANVAS_HEIGHT / 2;
+
+                app.stage.addChild(island);
             },
+
+            getCapacity: () => {
+                return islandRef.current?.getCapacity();
+            },
+
+            setInitialGrass: () => {
+                islandRef.current?.setInitialGrass();
+            },
+
             endCycle: (consumedGrassUnits: number) => {
                 islandRef.current?.endCycle(consumedGrassUnits);
             },
-            setInitialGrass: () => {
-                islandRef.current?.setInitialGrass();
+
+            startCycle: (regeneratingUnits: number) => {
+                islandRef.current?.startCycle(regeneratingUnits);
+            },
+
+            destroyIsland: () => {
+                if (islandRef.current && appRef.current) {
+                    appRef.current.stage.removeChild(islandRef.current);
+                    islandRef.current.destroy({ children: true });
+                    islandRef.current = null;
+                }
             }
         }));
 
@@ -60,31 +107,7 @@ export const SimulationCanvas = forwardRef<SimulationCanvasRef, SimulationCanvas
                 containerRef.current.appendChild(app.canvas);
                 appRef.current = app;
 
-                // Instanciar la isla con las métricas actuales
-                const island = new Island({
-                    cellGap: 0.5,
-                    metrics: ecosystemMetrics
-                });
-                islandRef.current = island;
-
-                // Estado inicial del pasto
-                island.setInitialGrass();
-
-                // Escalado proporcional dinámico para el espacio 804x540
-                const gridData = IslandShapeBuilder.buildGrid(0.5);
-                const paddingFactor = 0.9;
-
-                const scaleX = (CANVAS_WIDTH * paddingFactor) / gridData.totalWidth;
-                const scaleY = (CANVAS_HEIGHT * paddingFactor) / gridData.totalHeight;
-                const fitScale = Math.min(scaleX, scaleY);
-
-                island.scale.set(fitScale);
-
-                // Centrado exacto en el canvas
-                island.x = CANVAS_WIDTH / 2;
-                island.y = CANVAS_HEIGHT / 2;
-
-                app.stage.addChild(island);
+                onReady?.();
             }
 
             initPixi();

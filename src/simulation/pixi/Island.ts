@@ -34,18 +34,10 @@ export class Island extends PIXI.Container {
         this.pivot.set(gridData.totalWidth / 2, gridData.totalHeight / 2);
     }
 
-    /**
-     * Retorna la cantidad fija de polígonos que conforman la isla
-     */
     public getCapacity(): number {
         return this.activePolygons.length;
     }
 
-    /**
-     * Si la simulación está en el ciclo 1 (o al inicializarse), transforma en Estado 1 (Pasto activo)
-     * una cantidad de polígonos equivalente a la capacidad máxima (grassMaxLC) definida en metrics,
-     * dejando el excedente en Estado 3.
-     */
     public setInitialGrass(): void {
         if (!this.metrics || this.metrics.cycle === 1) {
             const targetGrass = this.metrics ? this.metrics.grassMaxLC : this.activePolygons.length;
@@ -53,13 +45,7 @@ export class Island extends PIXI.Container {
         }
     }
 
-    /**
-     * Finaliza el ciclo procesando el consumo de pasto y la regeneración de biocapacidad:
-     * 1. Obtiene los IDs de polígonos en estado 1 (Pasto) y estado 2 (Biocapacidad).
-     * 2. Selecciona aleatoriamente sin repetición los N polígonos consumidos de la lista de estado 1.
-     * 3. Pasa los polígonos consumidos a Estado 3 (Agotado/Vacío).
-     * 4. Pasa todos los polígonos que estaban en Estado 2 de vuelta a Estado 1 (Pasto).
-     */
+
     public endCycle(consumedGrassUnits: number): void {
         // Step 1: Solicitar IDs en estado 1 y estado 2 al ShapeBuilder
         const grassIds = IslandShapeBuilder.getGrassIds(this.activePolygons);
@@ -75,12 +61,7 @@ export class Island extends PIXI.Container {
         IslandShapeBuilder.setGrassByIds(this.activePolygons, biocapacityIds);
     }
 
-    /**
-     * Inicia el ciclo marcando las celdas en regeneración por biocapacidad:
-     * 1. Solicita al ShapeBuilder todos los IDs de polígonos en Estado 3 (Agotado/Vacío).
-     * 2. Obtiene aleatoriamente sin repetición una cantidad equivalente a 'regeneratingUnits'.
-     * 3. Pasa los polígonos seleccionados a Estado 2 (Biocapacidad/Recargando) mediante el ShapeBuilder.
-     */
+
     public startCycle(regeneratingUnits: number): void {
         // Step 1: Obtener todos los IDs en Estado 3
         const emptyIds = IslandShapeBuilder.getEmptyIds(this.activePolygons);

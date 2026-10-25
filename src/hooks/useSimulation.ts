@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { simulationEngine } from '../simulation/SimulationEngine';
+import type { SimulationCanvasRef } from '../react/components/SimulationCanvas';
 
 export function useSimulation() {
     const [, setTick] = useState(0);
+    const canvasRef = useRef<SimulationCanvasRef | null>(null);
 
     useEffect(() => {
         const unsubscribe = simulationEngine.subscribe(() => {
@@ -11,6 +13,14 @@ export function useSimulation() {
 
         return () => unsubscribe();
     }, []);
+
+    const createIsland = () => {
+        if (!canvasRef.current) return;
+
+        canvasRef.current.createIsland(simulationEngine.ecosystemMetrics);
+
+        canvasRef.current.setInitialGrass();
+    };
 
     const updateInitialRabbits = (val: number) => {
         simulationEngine.rabbitStats.updateInitialCount(val);
@@ -39,16 +49,32 @@ export function useSimulation() {
         simulationEngine.notify();
     };
 
-    const nextCicle = () => {
-        simulationEngine.nextCicle();
+    const nextCicle = async () => {
+        simulationEngine.cicleEnd();
+
+        canvasRef.current?.endCycle(simulationEngine.ecosystemMetrics.consumedGrass);
+
+        simulationEngine.notify();
+
+        console.log("Iniciando espera de 3 segundos para animaciones...");
+
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        simulationEngine.initializeCicle();
+
+        canvasRef.current?.startCycle(simulationEngine.ecosystemMetrics.biocapacity);
+
         simulationEngine.notify();
     };
 
     return {
+        canvasRef,
+
         rabbitStats: simulationEngine.rabbitStats,
         grassStats: simulationEngine.grassStats,
         ecosystemMetrics: simulationEngine.ecosystemMetrics,
 
+        createIsland,
         nextCicle,
         updateInitialRabbits,
         updateConsumptionRate,

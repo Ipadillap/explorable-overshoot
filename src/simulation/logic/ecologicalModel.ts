@@ -34,6 +34,7 @@ export function calculateExpectedDeaths(
     deathRate: number,
     satisfactionLevel: number
 ): number {
+    if (rabbits === 0) return 0;
 
     if (satisfactionLevel === 1) {
         return (deathRate);

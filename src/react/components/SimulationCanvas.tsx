@@ -13,11 +13,16 @@ interface SimulationCanvasProps {
 
 export interface SimulationCanvasRef {
     createIsland: (metrics: EcosystemMetrics) => void;
-    getCapacity: () => number | undefined;
+    spawnRabbits: (count: number) => void;
     setInitialGrass: () => void;
-    endCycle: (consumedGrassUnits: number) => void;
-    startCycle: (regeneratingUnits: number) => void;
+    getCapacity: () => number | undefined;
     destroyIsland: () => void;
+    initializeCycleAnimations: (regeneratingUnits: number) => Promise<void>;
+    processCycleAnimations: (consumptionRate: number) => Promise<void>;
+    finalizeCycleAnimations: (
+        totalDeaths: number,
+        totalBorn: number
+    ) => Promise<void>;
 }
 
 export const SimulationCanvas = forwardRef<SimulationCanvasRef, SimulationCanvasProps>(
@@ -26,12 +31,17 @@ export const SimulationCanvas = forwardRef<SimulationCanvasRef, SimulationCanvas
         const appRef = useRef<PIXI.Application | null>(null);
         const islandRef = useRef<Island | null>(null);
 
+        // Guardamos las referencias a las texturas precargadas
+        const texturesRef = useRef<{
+            rabbit: PIXI.Texture;
+            tombstone: PIXI.Texture;
+        } | null>(null);
+
         useImperativeHandle(ref, () => ({
             createIsland: (metrics: EcosystemMetrics) => {
                 const app = appRef.current;
                 if (!app) return;
 
-                // Si ya existe una isla previa, se remueve y destruye
                 if (islandRef.current) {
                     app.stage.removeChild(islandRef.current);
                     islandRef.current.destroy({ children: true });
@@ -40,11 +50,11 @@ export const SimulationCanvas = forwardRef<SimulationCanvasRef, SimulationCanvas
 
                 const island = new Island({
                     cellGap: 1,
-                    metrics
+                    metrics,
+                    textures: texturesRef.current ?? undefined
                 });
                 islandRef.current = island;
 
-                // Escalado y centrado proporcional
                 const gridData = IslandShapeBuilder.buildGrid(0.5);
                 const paddingFactor = 0.9;
 
@@ -59,20 +69,16 @@ export const SimulationCanvas = forwardRef<SimulationCanvasRef, SimulationCanvas
                 app.stage.addChild(island);
             },
 
-            getCapacity: () => {
-                return islandRef.current?.getCapacity();
+            spawnRabbits: (count: number) => {
+                islandRef.current?.spawnRabbits(count);
             },
 
             setInitialGrass: () => {
                 islandRef.current?.setInitialGrass();
             },
 
-            endCycle: (consumedGrassUnits: number) => {
-                islandRef.current?.endCycle(consumedGrassUnits);
-            },
-
-            startCycle: (regeneratingUnits: number) => {
-                islandRef.current?.startCycle(regeneratingUnits);
+            getCapacity: () => {
+                return islandRef.current?.getCapacity();
             },
 
             destroyIsland: () => {
@@ -81,7 +87,25 @@ export const SimulationCanvas = forwardRef<SimulationCanvasRef, SimulationCanvas
                     islandRef.current.destroy({ children: true });
                     islandRef.current = null;
                 }
-            }
+            },
+
+            initializeCycleAnimations: async (regeneratingUnits: number) => {
+                await islandRef.current?.initializeCycleAnimations(regeneratingUnits);
+            },
+
+            processCycleAnimations: async (consumptionRate: number) => {
+                await islandRef.current?.processCycleAnimations(consumptionRate);
+            },
+
+            finalizeCycleAnimations: async (
+                totalDeaths: number,
+                totalBorn: number
+            ) => {
+                await islandRef.current?.finalizeCycleAnimations(
+                    totalDeaths,
+                    totalBorn
+                );
+            },
         }));
 
         useEffect(() => {
@@ -103,6 +127,24 @@ export const SimulationCanvas = forwardRef<SimulationCanvasRef, SimulationCanvas
                     app.destroy(true);
                     return;
                 }
+
+                // -------------------------------------------------------------
+                // PRECARGA DE ASSETS PNG (Optimizada en GPU + Pixel-Perfect)
+                // -------------------------------------------------------------
+                const [rabbitTexture, tombstoneTexture] = await Promise.all([
+                    PIXI.Assets.load('/assets/rabbit.png'),
+                    PIXI.Assets.load('/assets/tombstone.png')
+                ]);
+
+                // Configurar escalado nítido para Pixel Art
+                rabbitTexture.source.scaleMode = 'nearest';
+                tombstoneTexture.source.scaleMode = 'nearest';
+
+                texturesRef.current = {
+                    rabbit: rabbitTexture,
+                    tombstone: tombstoneTexture,
+                };
+                // -------------------------------------------------------------
 
                 containerRef.current.appendChild(app.canvas);
                 appRef.current = app;

@@ -30,6 +30,7 @@ export function Phase2view() {
         rabbitStats,
         grassStats,
         ecosystemMetrics,
+
         createIsland,
         nextCicle,
         updateInitialRabbits,

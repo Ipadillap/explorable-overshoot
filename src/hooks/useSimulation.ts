@@ -15,11 +15,16 @@ export function useSimulation() {
     }, []);
 
     const createIsland = () => {
+        simulationEngine.initializeCicle();
+
         if (!canvasRef.current) return;
 
         canvasRef.current.createIsland(simulationEngine.ecosystemMetrics);
 
         canvasRef.current.setInitialGrass();
+
+        canvasRef.current.spawnRabbits(simulationEngine.ecosystemMetrics.totalRabbits);
+
     };
 
     const updateInitialRabbits = (val: number) => {
@@ -50,20 +55,23 @@ export function useSimulation() {
     };
 
     const nextCicle = async () => {
-        simulationEngine.cicleEnd();
-
-        canvasRef.current?.endCycle(simulationEngine.ecosystemMetrics.consumedGrass);
-
-        simulationEngine.notify();
-
-        console.log("Iniciando espera de 3 segundos para animaciones...");
-
+        // 1. Desarrollo del ciclo (Alimentación y movimiento)
+        await canvasRef.current?.processCycleAnimations(simulationEngine.rabbitStats.consumptionRate);
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
+        // 2. Cálculo lógico del fin de ciclo
+        simulationEngine.cicleEnd();
+
+        // 3. Animaciones de cierre (Consumo, muertes, lápidas y nacimientos)
+        await canvasRef.current?.finalizeCycleAnimations(
+            simulationEngine.ecosystemMetrics.totalDeaths,
+            simulationEngine.ecosystemMetrics.totalBorns
+        );
+        simulationEngine.notify();
+
+        // 4. Inicialización lógica y visual del siguiente ciclo
         simulationEngine.initializeCicle();
-
-        canvasRef.current?.startCycle(simulationEngine.ecosystemMetrics.biocapacity);
-
+        canvasRef.current?.initializeCycleAnimations(simulationEngine.ecosystemMetrics.biocapacity);
         simulationEngine.notify();
     };
 

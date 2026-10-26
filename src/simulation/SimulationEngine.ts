@@ -28,7 +28,9 @@ export class SimulationEngine {
             1,
             1,
             600,
-            300
+            300,
+            5,
+            0
         );
         this.rabbitStats = new RabbitStats(
             undefined,
@@ -42,7 +44,6 @@ export class SimulationEngine {
 
     public subscribe(listener: () => void): () => void {
         this.listeners.add(listener);
-        this.initializeCicle();
         return () => this.listeners.delete(listener);
     }
 
@@ -92,11 +93,23 @@ export class SimulationEngine {
 
         const nextGrass = availableGrass - realConsumption + biocapacity;
 
+
         this.ecosystemMetrics.cycle = this.ecosystemMetrics.cycle + 1;
+
+        this.ecosystemMetrics.totalDeaths = Math.min(expectedDeaths, this.ecosystemMetrics.totalRabbits);
+
         this.ecosystemMetrics.totalGrass = Math.min(
             maxGrassCapacity,
             Math.max(0, Math.round(nextGrass))
         );
+
+        if (maxRabbitsCapacity !== rabbits) {
+            this.ecosystemMetrics.totalBorns = Math.min(
+                this.ecosystemMetrics.rabbitsMaxLC - (rabbits - expectedDeaths),
+                expectedBirths
+            );
+
+        }
 
         this.ecosystemMetrics.totalRabbits = Math.max(
             0,

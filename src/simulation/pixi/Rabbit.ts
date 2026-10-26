@@ -1,78 +1,34 @@
-// src/simulation/pixi/Rabbit.ts
 import * as PIXI from 'pixi.js';
 
 export interface RabbitOptions {
-    size?: number;
-    jumpSpeed?: number;
-    jumpHeight?: number;
+    id: string;
+    polygonSize?: number;
+    texture?: PIXI.Texture;
+    x?: number;
+    y?: number;
 }
+export class Rabbit extends PIXI.Sprite {
+    public readonly id: string;
 
-export class Rabbit extends PIXI.Container {
-    private bodyGraphics: PIXI.Graphics;
-    private jumpSpeed: number;
-    private jumpHeight: number;
-    private elapsedTime: number = 0;
+    constructor(options: RabbitOptions) {
+        // Pasa la textura cargada directamente a la GPU
+        super(options.texture);
 
-    constructor(options: RabbitOptions = {}) {
-        super();
-        this.jumpSpeed = options.jumpSpeed ?? 0.08;
-        this.jumpHeight = options.jumpHeight ?? 12;
+        this.id = options.id;
+        this.x = options.x ?? 0;
+        this.y = options.y ?? 0;
 
-        this.bodyGraphics = new PIXI.Graphics();
-        this.addChild(this.bodyGraphics);
+        // Escalado exacto según el tamaño del hexágono
+        const polygonSize = options.polygonSize ?? 8;
+        const targetWidth = polygonSize * 0.65;
+        const scale = targetWidth / this.texture.width;
 
-        this.drawRabbit();
+        this.scale.set(scale);
+        this.anchor.set(0.5, 0.5); // Centrado automático
     }
 
-    /**
-     * Dibuja la silueta vectorial básica del conejo
-     */
-    private drawRabbit(): void {
-        this.bodyGraphics.clear();
-
-        // Color del conejo (Blanco/Beige) y bordes
-        const bodyColor = 0xF5F5F0;
-        const strokeColor = 0x8D8D8D;
-
-        // Oreja izquierda
-        this.bodyGraphics.ellipse(-4, -14, 3, 8);
-        this.bodyGraphics.fill({ color: bodyColor });
-        this.bodyGraphics.stroke({ width: 0.8, color: strokeColor });
-
-        // Oreja derecha
-        this.bodyGraphics.ellipse(3, -14, 3, 8);
-        this.bodyGraphics.fill({ color: bodyColor });
-        this.bodyGraphics.stroke({ width: 0.8, color: strokeColor });
-
-        // Cuerpo/Cabeza
-        this.bodyGraphics.ellipse(0, -4, 9, 8);
-        this.bodyGraphics.fill({ color: bodyColor });
-        this.bodyGraphics.stroke({ width: 0.8, color: strokeColor });
-
-        // Patitas
-        this.bodyGraphics.ellipse(-5, 3, 4, 2);
-        this.bodyGraphics.ellipse(5, 3, 4, 2);
-        this.bodyGraphics.fill({ color: bodyColor });
-        this.bodyGraphics.stroke({ width: 0.8, color: strokeColor });
-    }
-
-    /**
-     * Actualiza el bucle de salto en cada frame (Llamar desde el ticker)
-     */
-    public update(delta: number): void {
-        this.elapsedTime += this.jumpSpeed * delta;
-
-        // Calculamos la elevación vertical usando la parte positiva de la onda seno
-        const jumpProgress = Math.abs(Math.sin(this.elapsedTime));
-
-        // Mueve la posición local Y hacia arriba según la altura definida
-        this.bodyGraphics.y = -jumpProgress * this.jumpHeight;
-
-        // Efecto Squash & Stretch (deformación sutil al impactar/saltar)
-        const squash = 1 + (1 - jumpProgress) * 0.15;
-        const stretch = 1 + jumpProgress * 0.1;
-
-        this.bodyGraphics.scale.x = 1 / stretch;
-        this.bodyGraphics.scale.y = stretch * (jumpProgress > 0.1 ? 1 : squash);
+    public positionOnPolygon(polygonX: number, polygonY: number): void {
+        this.x = polygonX;
+        this.y = polygonY;
     }
 }

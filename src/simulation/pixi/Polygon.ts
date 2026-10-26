@@ -3,8 +3,8 @@ import * as PIXI from 'pixi.js';
 export type PolygonState = 1 | 2 | 3;
 
 export interface PolygonOptions {
-    row: number; // Fila del polígono en la grilla
-    col: number; // Columna del polígono en la grilla
+    row: number;
+    col: number;
     size?: number;
     gap?: number;
     initialState?: PolygonState;
@@ -46,9 +46,8 @@ export class Polygon extends PIXI.Container {
         const radius = this.size / 2;
         const points: number[] = [];
 
-        // Orientación Pointy-topped (Punta hacia arriba / Math.PI / 6 offset)
         for (let i = 0; i < 6; i++) {
-            const angle = (Math.PI / 3) * i - (Math.PI / 6);
+            const angle = (Math.PI / 3) * i - Math.PI / 6;
             const x = radius + radius * Math.cos(angle);
             const y = radius + radius * Math.sin(angle);
             points.push(x, y);
@@ -73,16 +72,18 @@ export class Polygon extends PIXI.Container {
         return this.size + this.gap;
     }
 
-    /**
-     * Retorna las coordenadas [row, col] del polígono.
-     */
     public getCoords(): [number, number] {
         return [this.row, this.col];
     }
 
-    /**
-     * Retorna el identificador único en formato "row,col" (ej: "5,12").
-     */
+    public getCenter(): { x: number; y: number } {
+        const radius = this.size / 2;
+        return {
+            x: this.x + radius,
+            y: this.y + radius,
+        };
+    }
+
     public get id(): string {
         return `${this.row},${this.col}`;
     }

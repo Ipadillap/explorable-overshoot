@@ -20,11 +20,13 @@ export function useSimulation() {
         if (!canvasRef.current) return;
 
         canvasRef.current.createIsland(simulationEngine.ecosystemMetrics);
-
         canvasRef.current.setInitialGrass();
+        canvasRef.current.initialSpawn(simulationEngine.ecosystemMetrics.totalRabbits);
+    };
 
-        canvasRef.current.spawnRabbits(simulationEngine.ecosystemMetrics.totalRabbits);
-
+    const resetSimulation = () => {
+        simulationEngine.reset();
+        createIsland();
     };
 
     const updateInitialRabbits = (val: number) => {
@@ -32,6 +34,10 @@ export function useSimulation() {
         if (simulationEngine.ecosystemMetrics.cycle === 1) {
             simulationEngine.ecosystemMetrics.totalRabbits = val;
         }
+
+        if (!canvasRef.current) return;
+        canvasRef.current.initialSpawn(simulationEngine.ecosystemMetrics.totalRabbits);
+
         simulationEngine.initializeCicle();
         simulationEngine.notify();
     };
@@ -55,21 +61,16 @@ export function useSimulation() {
     };
 
     const nextCicle = async () => {
-        // 1. Desarrollo del ciclo (Alimentación y movimiento)
         await canvasRef.current?.processCycleAnimations(simulationEngine.rabbitStats.consumptionRate);
-        await new Promise((resolve) => setTimeout(resolve, 3000));
 
-        // 2. Cálculo lógico del fin de ciclo
         simulationEngine.cicleEnd();
 
-        // 3. Animaciones de cierre (Consumo, muertes, lápidas y nacimientos)
         await canvasRef.current?.finalizeCycleAnimations(
             simulationEngine.ecosystemMetrics.totalDeaths,
-            simulationEngine.ecosystemMetrics.totalBorns
+            simulationEngine.ecosystemMetrics.totalBorn
         );
         simulationEngine.notify();
 
-        // 4. Inicialización lógica y visual del siguiente ciclo
         simulationEngine.initializeCicle();
         canvasRef.current?.initializeCycleAnimations(simulationEngine.ecosystemMetrics.biocapacity);
         simulationEngine.notify();
@@ -83,6 +84,7 @@ export function useSimulation() {
         ecosystemMetrics: simulationEngine.ecosystemMetrics,
 
         createIsland,
+        resetSimulation,
         nextCicle,
         updateInitialRabbits,
         updateConsumptionRate,

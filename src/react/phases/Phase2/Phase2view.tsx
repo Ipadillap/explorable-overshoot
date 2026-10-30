@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ResourceSlider } from "./components/ResourceSlider";
 import { SimulationButton } from "./components/SimulationButton";
 import { HexagonBlock } from "./components/HexagonBlock";
 import { RabbitBlock } from "./components/RabbitBlock";
 import { useSimulation } from "../../../hooks/useSimulation.ts";
 import { SimulationCanvas } from "../../components/SimulationCanvas.tsx";
+import {CycleIndicator} from "./components/CycleIndicatorProps.tsx";
 
 const DESIGN_W = 1440;
 const DESIGN_H = 704;
@@ -32,6 +33,7 @@ export function Phase2view() {
         ecosystemMetrics,
 
         createIsland,
+        resetSimulation,
         nextCicle,
         updateInitialRabbits,
         updateConsumptionRate,
@@ -41,9 +43,102 @@ export function Phase2view() {
 
     const scale = useScaleToFit();
 
+    // Estado para saber si una animación está en ejecución
+    const [isAnimating, setIsAnimating] = useState(false);
+
+    // Estado para el modo de reproducción continua (Play)
+    const [isPlaying, setIsPlaying] = useState(false);
+    const isPlayingRef = useRef(false);
+
+    // Estado para saber si la orden de detención (Stop) fue activada durante Play
+    const [isStopPending, setIsStopPending] = useState(false);
+
+    // Métricas calculadas para la barra inferior
+    const [totalGrassToBeRenewed, setTotalGrassToBeRenewed] = useState(0);
+    const [totalGrassToNotBeRenewed, setTotalGrassToNotBeRenewed] = useState(0);
+
     useEffect(() => {
         createIsland();
     }, []);
+
+    // Ejecuta 1 ciclo completo de simulación
+    const runSingleCycle = async () => {
+        setIsAnimating(true);
+        try {
+            await nextCicle();
+        } finally {
+            setIsAnimating(false);
+            setTotalGrassToBeRenewed(ecosystemMetrics.biocapacity);
+            setTotalGrassToNotBeRenewed(
+                Math.max(
+                    0,
+                    ecosystemMetrics.grassMaxLC - (ecosystemMetrics.totalGrass + ecosystemMetrics.biocapacity)
+                )
+            );
+        }
+    };
+
+    // Botón Next: Ejecuta un ciclo manual (Bloquea la UI completa durante la ejecución)
+    const handleNextCycle = async () => {
+        if (isAnimating || isPlaying) return;
+        await runSingleCycle();
+    };
+
+    // Botón Play: Corre ciclos de forma continua en bucle
+    const handlePlay = async () => {
+        if (isPlaying || isAnimating) return;
+
+        setIsPlaying(true);
+        isPlayingRef.current = true;
+        setIsStopPending(false);
+
+        while (isPlayingRef.current) {
+            await runSingleCycle();
+        }
+
+        setIsPlaying(false);
+        setIsStopPending(false);
+    };
+
+    // Botón Stop: Solicita detención y se deshabilita de inmediato
+    const handleStop = () => {
+        if (!isPlayingRef.current || isStopPending) return;
+
+        isPlayingRef.current = false;
+        setIsStopPending(true);
+    };
+
+    // Botón Reboot: Acción instantánea para resetear todo el estado
+    const handleReset = () => {
+        isPlayingRef.current = false;
+        setIsPlaying(false);
+        setIsAnimating(false);
+        setIsStopPending(false);
+
+        setTotalGrassToBeRenewed(0);
+        setTotalGrassToNotBeRenewed(0);
+
+        resetSimulation();
+    };
+
+    // ------------------------------------------------------------------------
+    // LÓGICA DE BLOQUEOS DE INTERFAZ Y BOTONES
+    // ------------------------------------------------------------------------
+    const isAnySliderBlocked = isAnimating || isPlaying;
+    const isInitialRabbitsBlocked = isAnySliderBlocked || ecosystemMetrics.cycle > 1;
+
+    // Reglas de estado de la botonera:
+    // Play: disponible si no está reproduciendo ni animando un paso manual.
+    const isPlayDisabled = isPlaying || isAnimating;
+
+    // Stop: disponible ÚNICAMENTE durante el modo Play activo y mientras no se haya pulsado Stop ya.
+    const isStopDisabled = !isPlaying || isStopPending;
+
+    // Next: disponible sólo cuando el sistema está en reposo (ni en Play ni en animación).
+    const isNextDisabled = isPlaying || isAnimating;
+
+    // Reboot: disponible sólo en reposo (o si se requiere reiniciar de forma limpia).
+    const isRebootDisabled = isPlaying || isAnimating;
 
     return (
         <main className="relative w-screen h-screen overflow-hidden flex items-center justify-center">
@@ -94,11 +189,15 @@ export function Phase2view() {
                     <section className="h-full rounded-lg flex flex-col justify-between">
 
                         {/* Representación visual */}
-                        <div className="h-full w-full flex flex-col justify-center">
+                        <div className="relative h-full w-full flex flex-col justify-center items-center">
                             <SimulationCanvas
                                 ref={canvasRef}
                                 onReady={createIsland}
                             />
+
+                            <div className="absolute bottom-4 right-4 z-10">
+                                <CycleIndicator cycle={ecosystemMetrics.cycle} />
+                            </div>
                         </div>
 
                         {/* Resumen de simulación */}
@@ -115,14 +214,12 @@ export function Phase2view() {
 
                             <div className="w-[174px] h-[42px] flex flex-row items-center gap-3 justify-center">
                                 <HexagonBlock color="#f8edc9" />
-                                <p className="font-bold">{ecosystemMetrics.biocapacity}</p>
+                                <p className="font-bold">{totalGrassToBeRenewed}</p>
                             </div>
 
                             <div className="w-[174px] h-[42px] flex flex-row items-center gap-3 justify-center">
                                 <HexagonBlock color="#f5e3de" />
-                                <p className="font-bold">
-                                    {Math.max(0, ecosystemMetrics.grassMaxLC - ecosystemMetrics.totalGrass + ecosystemMetrics.biocapacity)}
-                                </p>
+                                <p className="font-bold">{totalGrassToNotBeRenewed}</p>
                             </div>
                         </div>
                     </section>
@@ -136,6 +233,7 @@ export function Phase2view() {
                                     value={rabbitStats.initialCount}
                                     min={1}
                                     max={10}
+                                    isBlocked={isInitialRabbitsBlocked}
                                     onChange={updateInitialRabbits}
                                 />
                             </div>
@@ -148,6 +246,7 @@ export function Phase2view() {
                                     value={rabbitStats.consumptionRate}
                                     min={1}
                                     max={10}
+                                    isBlocked={isAnySliderBlocked}
                                     onChange={updateConsumptionRate}
                                 />
                             </div>
@@ -160,6 +259,7 @@ export function Phase2view() {
                                     value={rabbitStats.deathRate}
                                     min={1}
                                     max={10}
+                                    isBlocked={isAnySliderBlocked}
                                     onChange={updateDeathRate}
                                 />
                             </div>
@@ -173,6 +273,7 @@ export function Phase2view() {
                                     min={0}
                                     max={1}
                                     step={0.1}
+                                    isBlocked={isAnySliderBlocked}
                                     onChange={updateRegenerationRate}
                                 />
                             </div>
@@ -182,16 +283,36 @@ export function Phase2view() {
 
                         <div className="w-[260px] grid grid-cols-2 grid-rows-2 gap-4 place-items-center">
                             <div className="w-24">
-                                <SimulationButton icon={1} label="Play" />
+                                <SimulationButton
+                                    icon={1}
+                                    label="Play"
+                                    disabled={isPlayDisabled}
+                                    onClick={handlePlay}
+                                />
                             </div>
                             <div className="w-24">
-                                <SimulationButton icon={2} label="Stop" />
+                                <SimulationButton
+                                    icon={2}
+                                    label="Stop"
+                                    disabled={isStopDisabled}
+                                    onClick={handleStop}
+                                />
                             </div>
                             <div className="w-24">
-                                <SimulationButton icon={3} label="Next" onClick={nextCicle} />
+                                <SimulationButton
+                                    icon={3}
+                                    label="Next"
+                                    disabled={isNextDisabled}
+                                    onClick={handleNextCycle}
+                                />
                             </div>
                             <div className="w-24">
-                                <SimulationButton icon={4} label="Reboot" />
+                                <SimulationButton
+                                    icon={4}
+                                    label="Reboot"
+                                    disabled={isRebootDisabled}
+                                    onClick={handleReset}
+                                />
                             </div>
                         </div>
                     </aside>

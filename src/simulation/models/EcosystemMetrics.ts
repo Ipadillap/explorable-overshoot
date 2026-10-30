@@ -10,7 +10,8 @@ export class EcosystemMetrics {
     public grassMaxLC: number;
     public rabbitsMaxLC: number;
     public totalDeaths: number;
-    public totalBorns: number;
+    public totalBorn: number;
+    
 
     constructor(
         cycle: number,
@@ -35,7 +36,7 @@ export class EcosystemMetrics {
         this.rabbitsMaxLC = rabbitsMaxLoadCapacity;
         this.overshootDegree = 0;
         this.totalDeaths = totalDeaths;
-        this.totalBorns = totalBorns;
+        this.totalBorn = totalBorns;
     }
 
     public showActaulMetrics(): void {

@@ -2,8 +2,8 @@ import * as PIXI from 'pixi.js';
 import { Polygon } from './Polygon';
 import { IslandShapeBuilder } from './IslandShapeBuilder';
 import { EcosystemMetrics } from '../models/EcosystemMetrics';
-import { Rabbit } from './Rabbit';
-import { Tombstone } from './Tombstone';
+import { Rabbit} from './Rabbit';
+import { Tombstone} from './Tombstone';
 
 interface IslandOptions {
     cellGap?: number;
@@ -14,6 +14,7 @@ interface IslandOptions {
     };
 }
 
+const PREDEFINED_POLYGON_INDICES = [112, 145, 178, 202, 234, 260, 295, 320, 355, 390];
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export class Island extends PIXI.Container {
@@ -52,7 +53,6 @@ export class Island extends PIXI.Container {
 
         const gridData = IslandShapeBuilder.buildGrid(this.cellGap);
         this.activePolygons = gridData.polygons;
-
         this.activePolygons.forEach((polygon) => this.addChild(polygon));
 
         this.pivot.set(gridData.totalWidth / 2, gridData.totalHeight / 2);
@@ -69,6 +69,53 @@ export class Island extends PIXI.Container {
         }
     }
 
+    /**
+     * Helper privado para instanciar y registrar un nuevo conejo.
+     */
+    private createRabbitOnPolygon(polygon: Polygon): Rabbit {
+        this.rabbitCounter++;
+        const rabbitId = `rabbit_${this.rabbitCounter}`;
+
+        const rabbit = new Rabbit({
+            id: rabbitId,
+            polygonSize: 15,
+            texture: this.textures?.rabbit
+        });
+
+        const center = polygon.getCenter();
+        rabbit.positionOnPolygon(center.x, center.y);
+
+        this.rabbitsMap.set(rabbitId, rabbit);
+        this.polygonToRabbitMap.set(polygon.id, rabbitId);
+
+        this.addChild(rabbit);
+        return rabbit;
+    }
+
+    public initialSpawn(count: number): Rabbit[] {
+        // Limpieza de población previa
+        this.rabbitsMap.forEach((rabbit) => {
+            this.removeChild(rabbit);
+            rabbit.destroy();
+        });
+        this.rabbitsMap.clear();
+        this.polygonToRabbitMap.clear();
+        this.rabbitCounter = 0;
+
+        const targetCount = Math.min(count, PREDEFINED_POLYGON_INDICES.length);
+        const createdRabbits: Rabbit[] = [];
+
+        for (let i = 0; i < targetCount; i++) {
+            const polygonIndex = PREDEFINED_POLYGON_INDICES[i];
+            if (polygonIndex >= this.activePolygons.length) continue;
+
+            const rabbit = this.createRabbitOnPolygon(this.activePolygons[polygonIndex]);
+            createdRabbits.push(rabbit);
+        }
+
+        return createdRabbits;
+    }
+
     public spawnRabbits(count: number): Rabbit[] {
         const availablePolygons = this.activePolygons.filter(
             (polygon) => !this.polygonToRabbitMap.has(polygon.id)
@@ -79,85 +126,34 @@ export class Island extends PIXI.Container {
         const createdRabbits: Rabbit[] = [];
 
         for (let i = 0; i < spawnAmount; i++) {
-            this.rabbitCounter++;
-            const rabbitId = `rabbit_${this.rabbitCounter}`;
-            const targetPolygon = shuffledPolygons[i];
-
-            // Pasamos la textura precargada si existe
-            const rabbitOptions: any = {
-                id: rabbitId,
-                polygonSize: 15
-            };
-            if (this.textures?.rabbit) {
-                rabbitOptions.texture = this.textures.rabbit;
-            }
-
-            const rabbit = new Rabbit(rabbitOptions);
-
-            const center = targetPolygon.getCenter();
-            rabbit.positionOnPolygon(center.x, center.y);
-
-            this.rabbitsMap.set(rabbitId, rabbit);
-            this.polygonToRabbitMap.set(targetPolygon.id, rabbitId);
-
-            this.addChild(rabbit);
+            const rabbit = this.createRabbitOnPolygon(shuffledPolygons[i]);
             createdRabbits.push(rabbit);
         }
 
         return createdRabbits;
     }
 
-    public async feedRabbits(delayMs: number = 3000): Promise<void> {
-        const rabbits = Array.from(this.rabbitsMap.values());
-        if (rabbits.length === 0) return;
-
-        const availableGrassPolygons = this.activePolygons.filter(
-            (polygon) => polygon.getState() === 1 && !this.polygonToRabbitMap.has(polygon.id)
-        );
-
-        const shuffledGrassPolygons = [...availableGrassPolygons].sort(() => 0.5 - Math.random());
-        const occupiedPolygons: Polygon[] = [];
-
-        rabbits.forEach((rabbit, index) => {
-            if (index < shuffledGrassPolygons.length) {
-                const newPolygon = shuffledGrassPolygons[index];
-
-                for (const [polyId, rId] of this.polygonToRabbitMap.entries()) {
-                    if (rId === rabbit.id) {
-                        this.polygonToRabbitMap.delete(polyId);
-                        break;
-                    }
-                }
-
-                const center = newPolygon.getCenter();
-                rabbit.positionOnPolygon(center.x, center.y);
-                this.polygonToRabbitMap.set(newPolygon.id, rabbit.id);
-
-                occupiedPolygons.push(newPolygon);
-            }
-        });
-
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
-
-        const occupiedIds = occupiedPolygons.map((polygon) => polygon.id);
-        IslandShapeBuilder.setEmptyByIds(this.activePolygons, occupiedIds);
-    }
-
-    public killRabbits(count: number): void {
+    public killRabbits(count: number, excludeBornCount: number = 0): void {
         const activeRabbits = Array.from(this.rabbitsMap.values());
         if (activeRabbits.length === 0 || count <= 0) return;
 
-        const shuffledRabbits = [...activeRabbits].sort(() => 0.5 - Math.random());
-        const rabbitsToKill = shuffledRabbits.slice(0, Math.min(count, activeRabbits.length));
+        const eligibleRabbits = excludeBornCount > 0
+            ? activeRabbits.slice(0, Math.max(0, activeRabbits.length - excludeBornCount))
+            : activeRabbits;
+
+        if (eligibleRabbits.length === 0) return;
+
+        const shuffledRabbits = [...eligibleRabbits].sort(() => 0.5 - Math.random());
+        const rabbitsToKill = shuffledRabbits.slice(0, Math.min(count, eligibleRabbits.length));
+
+        // Invertir mapa para búsqueda directa O(1) de polígono por conejo
+        const rabbitToPolygonMap = new Map<string, string>();
+        for (const [pId, rId] of this.polygonToRabbitMap.entries()) {
+            rabbitToPolygonMap.set(rId, pId);
+        }
 
         rabbitsToKill.forEach((rabbit) => {
-            let polygonId: string | null = null;
-            for (const [pId, rId] of this.polygonToRabbitMap.entries()) {
-                if (rId === rabbit.id) {
-                    polygonId = pId;
-                    break;
-                }
-            }
+            const polygonId = rabbitToPolygonMap.get(rabbit.id);
 
             if (polygonId) {
                 const polygon = this.activePolygons.find((p) => p.id === polygonId);
@@ -165,15 +161,11 @@ export class Island extends PIXI.Container {
                     this.tombstoneCounter++;
                     const tombstoneId = `tombstone_${this.tombstoneCounter}`;
 
-                    const tombstoneOptions: any = {
+                    const tombstone = new Tombstone({
                         id: tombstoneId,
-                        polygonSize: 15
-                    };
-                    if (this.textures?.tombstone) {
-                        tombstoneOptions.texture = this.textures.tombstone;
-                    }
-
-                    const tombstone = new Tombstone(tombstoneOptions);
+                        polygonSize: 15,
+                        texture: this.textures?.tombstone
+                    });
 
                     const center = polygon.getCenter();
                     tombstone.positionOnPolygon(center.x, center.y);
@@ -189,6 +181,46 @@ export class Island extends PIXI.Container {
             this.removeChild(rabbit);
             rabbit.destroy();
         });
+    }
+
+    public async feedRabbits(delayMs: number = 3000): Promise<void> {
+        const rabbits = Array.from(this.rabbitsMap.values());
+        if (rabbits.length === 0) return;
+
+        const availableGrassPolygons = this.activePolygons.filter(
+            (polygon) => polygon.getState() === 1 && !this.polygonToRabbitMap.has(polygon.id)
+        );
+
+        const shuffledGrassPolygons = [...availableGrassPolygons].sort(() => 0.5 - Math.random());
+        const occupiedPolygons: Polygon[] = [];
+
+        // Mapeo invertido para liberación rápida O(1)
+        const rabbitToPolygonMap = new Map<string, string>();
+        for (const [pId, rId] of this.polygonToRabbitMap.entries()) {
+            rabbitToPolygonMap.set(rId, pId);
+        }
+
+        rabbits.forEach((rabbit, index) => {
+            if (index < shuffledGrassPolygons.length) {
+                const newPolygon = shuffledGrassPolygons[index];
+
+                const oldPolyId = rabbitToPolygonMap.get(rabbit.id);
+                if (oldPolyId) {
+                    this.polygonToRabbitMap.delete(oldPolyId);
+                }
+
+                const center = newPolygon.getCenter();
+                rabbit.positionOnPolygon(center.x, center.y);
+                this.polygonToRabbitMap.set(newPolygon.id, rabbit.id);
+
+                occupiedPolygons.push(newPolygon);
+            }
+        });
+
+        await delay(delayMs);
+
+        const occupiedIds = occupiedPolygons.map((polygon) => polygon.id);
+        IslandShapeBuilder.setEmptyByIds(this.activePolygons, occupiedIds);
     }
 
     public killTombstones(): void {
@@ -212,40 +244,24 @@ export class Island extends PIXI.Container {
 
     public async processCycleAnimations(consumptionRate: number): Promise<void> {
         for (let i = 0; i < consumptionRate; i++) {
-            const hasGrassAvailable = this.activePolygons.some(
-                (polygon) => polygon.getState() === 1
-            );
+            const hasGrassAvailable = this.activePolygons.some((polygon) => polygon.getState() === 1);
+            if (!hasGrassAvailable || i === consumptionRate-1) break;
 
-            if (!hasGrassAvailable) {
-                break;
-            }
-
-            await this.feedRabbits(1000);
+            await this.feedRabbits(500);
         }
     }
 
-    public async finalizeCycleAnimations(
-        totalDeaths: number,
-        totalBorn: number
-    ): Promise<void> {
-        console.log("Total de muertes: " + totalDeaths);
-        console.log("Total de nacimientos: " + totalBorn);
+    public async finalizeCycleAnimations(totalDeaths: number, totalBorn: number): Promise<void> {
+        console.log("Total de muertes:", totalDeaths);
+        console.log("Total de nacimientos:", totalBorn);
 
         this.spawnRabbits(totalBorn);
-        await delay(1000);
-        this.killRabbits(totalDeaths);
+        await delay(500);
 
-        await delay(2000);
+        this.killRabbits(totalDeaths, totalBorn);
+        await delay(500);
 
         this.killTombstones();
         this.restoreBiocapacity();
-    }
-
-    public getRabbitById(id: string): Rabbit | undefined {
-        return this.rabbitsMap.get(id);
-    }
-
-    public getAllRabbits(): Rabbit[] {
-        return Array.from(this.rabbitsMap.values());
     }
 }

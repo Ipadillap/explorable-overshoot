@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 
+// En Rabbit.ts
 export interface RabbitOptions {
     id: string;
     polygonSize?: number;
@@ -7,6 +8,7 @@ export interface RabbitOptions {
     x?: number;
     y?: number;
 }
+
 export class Rabbit extends PIXI.Sprite {
     public readonly id: string;
 

@@ -13,6 +13,7 @@ interface SimulationCanvasProps {
 
 export interface SimulationCanvasRef {
     createIsland: (metrics: EcosystemMetrics) => void;
+    initialSpawn: (count: number) => void;
     spawnRabbits: (count: number) => void;
     setInitialGrass: () => void;
     getCapacity: () => number | undefined;
@@ -105,6 +106,10 @@ export const SimulationCanvas = forwardRef<SimulationCanvasRef, SimulationCanvas
                     totalDeaths,
                     totalBorn
                 );
+            },
+
+            initialSpawn: (count: number) => {
+                islandRef.current?.initialSpawn(count);
             },
         }));
 

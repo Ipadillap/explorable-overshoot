@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { Polygon } from './Polygon';
 import { IslandShapeBuilder } from './IslandShapeBuilder';
-import { EcosystemMetrics } from '../models/EcosystemMetrics';
+import { EcosystemMetrics } from '../engine/models/EcosystemMetrics';
 import { Rabbit} from './Rabbit';
 import { Tombstone} from './Tombstone';
 

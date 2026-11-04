@@ -1,6 +1,6 @@
-import { RabbitStats } from './models/RabbitStats';
-import { GrassStats } from './models/GrassStats';
-import { EcosystemMetrics } from './models/EcosystemMetrics';
+import { RabbitStats } from './models/RabbitStats.ts';
+import { GrassStats } from './models/GrassStats.ts';
+import { EcosystemMetrics } from './models/EcosystemMetrics.ts';
 import {
     calculateBiocapacity,
     calculateEcologicalFootprint,
@@ -10,7 +10,7 @@ import {
     calculateRealConsumption,
     calculateSatisfactionLevel,
     calculateTotalDemand
-} from "./logic/ecologicalModel.ts";
+} from "./ecologicalModel.ts";
 
 export class SimulationEngine {
     public rabbitStats: RabbitStats;
@@ -61,12 +61,10 @@ export class SimulationEngine {
         this.ecosystemMetrics.isOvershoot = false;
         this.ecosystemMetrics.overshootDegree = 0;
 
-        // Reset de parámetros de conejos
         this.rabbitStats.initialCount = 5;
         this.rabbitStats.consumptionRate = 5;
         this.rabbitStats.deathRate = 5;
 
-        // Reset de parámetros de hierba
         this.grassStats.regenerationRate = 1;
 
         this.initializeCicle();

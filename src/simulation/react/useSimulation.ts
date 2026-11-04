@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { simulationEngine } from '../simulation/SimulationEngine';
-import type { SimulationCanvasRef } from '../react/components/SimulationCanvas';
+import { simulationEngine } from '../engine/SimulationEngine.ts';
+import type { SimulationCanvasRef } from './SimulationCanvas.tsx';
 
 export function useSimulation() {
     const [, setTick] = useState(0);

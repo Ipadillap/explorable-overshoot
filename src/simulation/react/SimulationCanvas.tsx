@@ -1,8 +1,8 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import * as PIXI from 'pixi.js';
-import type { EcosystemMetrics } from '../../simulation/models/EcosystemMetrics.ts';
-import { Island } from '../../simulation/pixi/Island.ts';
-import { IslandShapeBuilder } from '../../simulation/pixi/IslandShapeBuilder.ts';
+import type { EcosystemMetrics } from '../engine/models/EcosystemMetrics.ts';
+import { Island } from '../pixi/Island.ts';
+import { IslandShapeBuilder } from '../pixi/IslandShapeBuilder.ts';
 
 const CANVAS_WIDTH = 804;
 const CANVAS_HEIGHT = 540;

@@ -4,7 +4,7 @@ import {
     calculateRealConsumption,
     calculateBiocapacity,
     calculateExpectedDeaths, calculateExpectedBirths,
-} from './ecologicalModel';
+} from './ecologicalModel.ts';
 
 
 describe('calculateTotalDemand', () => {

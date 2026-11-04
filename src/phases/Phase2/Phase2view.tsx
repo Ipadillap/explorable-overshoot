@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef } from "react";
-import { ResourceSlider } from "./components/ResourceSlider";
-import { SimulationButton } from "./components/SimulationButton";
-import { HexagonBlock } from "./components/HexagonBlock";
-import { RabbitBlock } from "./components/RabbitBlock";
-import { useSimulation } from "../../../hooks/useSimulation.ts";
-import { SimulationCanvas } from "../../components/SimulationCanvas.tsx";
-import {CycleIndicator} from "./components/CycleIndicatorProps.tsx";
+import { ResourceSlider } from "../../shared/components/ResourceSlider.tsx";
+import { SimulationButton } from "../../shared/components/SimulationButton.tsx";
+import { HexagonBlock } from "../../shared/components/HexagonBlock.tsx";
+import { RabbitBlock } from "../../shared/components/RabbitBlock.tsx";
+import { useSimulation } from "../../simulation/react/useSimulation.ts";
+import { SimulationCanvas } from "../../simulation/react/SimulationCanvas.tsx";
+import {CycleIndicator} from "../../shared/components/CycleIndicatorProps.tsx";
 
 const DESIGN_W = 1440;
 const DESIGN_H = 704;
@@ -61,7 +61,6 @@ export function Phase2view() {
         createIsland();
     }, []);
 
-    // Ejecuta 1 ciclo completo de simulación
     const runSingleCycle = async () => {
         setIsAnimating(true);
         try {
@@ -78,7 +77,6 @@ export function Phase2view() {
         }
     };
 
-    // Botón Next: Ejecuta un ciclo manual (Bloquea la UI completa durante la ejecución)
     const handleNextCycle = async () => {
         if (isAnimating || isPlaying) return;
         await runSingleCycle();
@@ -100,7 +98,6 @@ export function Phase2view() {
         setIsStopPending(false);
     };
 
-    // Botón Stop: Solicita detención y se deshabilita de inmediato
     const handleStop = () => {
         if (!isPlayingRef.current || isStopPending) return;
 
@@ -108,7 +105,6 @@ export function Phase2view() {
         setIsStopPending(true);
     };
 
-    // Botón Reboot: Acción instantánea para resetear todo el estado
     const handleReset = () => {
         isPlayingRef.current = false;
         setIsPlaying(false);

@@ -5,7 +5,7 @@ export interface PhaseProps {
     children?: ReactNode;
 }
 
-export function Phase1({ onNext, children }: PhaseProps) {
+export function Phase1View({ onNext, children }: PhaseProps) {
     return (
         <div className="phase-card">
             <h2>Fase 1: Introducción a la Biocapacidad</h2>

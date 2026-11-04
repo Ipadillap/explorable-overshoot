@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import {Phase1} from './react/phases/Phase1.tsx';
-import {Phase2view} from './react/phases/Phase2/Phase2view.tsx';
-import {Phase3} from './react/phases/Phase3.tsx';
+import {Phase1View} from './phases/Phase1/Phase1View.tsx';
+import {Phase2view} from './phases/Phase2/Phase2view.tsx';
+import {Phase3} from './phases/Phase3.tsx';
 
 
 export function App() {
@@ -14,7 +14,7 @@ export function App() {
         <div className="app-container">
 
             {currentPhase === 1 && (
-                <Phase1 onNext={nextPhase} />
+                <Phase1View onNext={nextPhase} />
             )}
 
             {currentPhase === 2 && (

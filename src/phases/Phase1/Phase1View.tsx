@@ -1,20 +1,38 @@
-import type { ReactNode } from 'react';
+// src/phases/Phase1/Phase1View.tsx
 
-export interface PhaseProps {
-    onNext: () => void;
-    children?: ReactNode;
+import { useState } from 'react';
+import { PHASE1_NARRATIVE } from './narrative/Phase1Script';
+import { NarrativeCard } from './components/NarrativeCard';
+
+interface Phase1ViewProps {
+    onNext?: () => void;
 }
 
-export function Phase1View({ onNext, children }: PhaseProps) {
+export function Phase1View({ onNext }: Phase1ViewProps) {
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
+    const currentStepData = PHASE1_NARRATIVE[currentStepIndex];
+
+    const handleAdvance = () => {
+        if (currentStepIndex < PHASE1_NARRATIVE.length - 1) {
+            // Avanzar al siguiente diálogo dentro de la Fase 1
+            setCurrentStepIndex((prev) => prev + 1);
+        } else {
+            // Se completó la narrativa de la Fase 1 -> Pasar a la Fase 2
+            onNext?.();
+        }
+    };
+
     return (
-        <div className="phase-card">
-            <h2>Fase 1: Introducción a la Biocapacidad</h2>
-            <p>
-                En esta primera etapa observarás cómo los recursos de la isla se regeneran de forma natural
-                en un estado de equilibrio previo al sobregiro.
-            </p>
-            {children}
-            <button onClick={onNext}>Iniciar Experimento (Fase 2)</button>
+        <div className="w-full h-full flex items-center justify-center">
+            <NarrativeCard
+                title={currentStepData.title}
+                text={currentStepData.text}
+                stepNumber={currentStepIndex + 1}
+                totalSteps={PHASE1_NARRATIVE.length}
+                buttonLabel={currentStepData.buttonLabel}
+                onNextStep={handleAdvance}
+            />
         </div>
     );
 }

@@ -1,11 +1,10 @@
-// src/components/ResourceSlider.tsx
 interface ResourceSliderProps {
     label: string;
     value: number;
     min: number;
     max: number;
     step?: number;
-    isBlocked?: boolean; // Estado para bloquear/deshabilitar el slider
+    isBlocked?: boolean;
     onChange: (newValue: number) => void;
 }
 

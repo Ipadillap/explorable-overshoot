@@ -2,7 +2,7 @@ export interface Phase3Props {
     onPrev: () => void;
 }
 
-export function Phase3({ onPrev }: Phase3Props) {
+export function Chapter3({ onPrev }: Phase3Props) {
     return (
         <div className="phase-card">
             <h2>Fase 3: Reflexión y Límites Planetarios</h2>

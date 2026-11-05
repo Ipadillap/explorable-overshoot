@@ -7,7 +7,7 @@ import { useSimulation } from "../../simulation/react/useSimulation.ts";
 import { SimulationCanvas } from "../../simulation/react/SimulationCanvas.tsx";
 import { CycleIndicator } from "../../shared/components/CycleIndicatorProps.tsx";
 
-export function Phase2view() {
+export function Chapter2view() {
     const {
         canvasRef,
         rabbitStats,
@@ -23,17 +23,13 @@ export function Phase2view() {
         updateRegenerationRate,
     } = useSimulation();
 
-    // Estado para saber si una animación está en ejecución
     const [isAnimating, setIsAnimating] = useState(false);
 
-    // Estado para el modo de reproducción continua (Play)
     const [isPlaying, setIsPlaying] = useState(false);
     const isPlayingRef = useRef(false);
 
-    // Estado para saber si la orden de detención (Stop) fue activada durante Play
     const [isStopPending, setIsStopPending] = useState(false);
 
-    // Métricas calculadas para la barra inferior
     const [totalGrassToBeRenewed, setTotalGrassToBeRenewed] = useState(0);
     const [totalGrassToNotBeRenewed, setTotalGrassToNotBeRenewed] = useState(0);
 
@@ -99,7 +95,6 @@ export function Phase2view() {
         resetSimulation();
     };
 
-    // Bloqueos de interfaz
     const isAnySliderBlocked = isAnimating || isPlaying;
     const isInitialRabbitsBlocked = isAnySliderBlocked || ecosystemMetrics.cycle > 1;
 

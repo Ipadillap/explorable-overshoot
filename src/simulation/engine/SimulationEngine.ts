@@ -112,6 +112,7 @@ export class SimulationEngine {
 
         this.ecosystemMetrics.cycle = this.ecosystemMetrics.cycle + 1;
         this.ecosystemMetrics.totalDeaths = Math.min(expectedDeaths, this.ecosystemMetrics.totalRabbits);
+        console.log("Conejos a morir" + expectedDeaths)
 
         this.ecosystemMetrics.totalGrass = Math.min(
             maxGrassCapacity,

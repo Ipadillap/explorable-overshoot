@@ -1,3 +1,5 @@
+// src/shared/components/simulation/SimulationCenterPanel.tsx
+
 import React from "react";
 import { SimulationCanvas, type SimulationCanvasRef } from "../../../simulation/react/SimulationCanvas";
 import { CycleIndicator } from "../CycleIndicatorProps";
@@ -31,7 +33,6 @@ export const SimulationCenterPanel: React.FC<SimulationCenterPanelProps> = ({
                                                                                 totalGrassToNotBeRenewed,
                                                                                 visibility = {},
                                                                             }) => {
-    // Por defecto, todos los elementos se muestran
     const {
         showCanvas = true,
         showCycleIndicator = true,
@@ -41,63 +42,99 @@ export const SimulationCenterPanel: React.FC<SimulationCenterPanelProps> = ({
         showGrassToNotBeRenewed = true,
     } = visibility;
 
-    const hasAnySummaryBlockVisible =
-        showTotalRabbits || showTotalGrass || showGrassToBeRenewed || showGrassToNotBeRenewed;
+    const hasAnySummary = showTotalRabbits || showTotalGrass || showGrassToBeRenewed || showGrassToNotBeRenewed;
 
     return (
-        <section className="w-[804px] h-[704px] rounded-lg flex flex-col justify-between gap-4 transition-all duration-300">
-            {/* 1. Lienzo Visual de Simulación y 2. Indicador de Ciclo */}
-            {showCanvas && (
-                <div className="relative w-full flex-1 bg-white border border-[#DFE8E2] rounded-lg overflow-hidden shadow-sm flex items-center justify-center">
-                    <SimulationCanvas
-                        ref={canvasRef}
-                        onReady={createIsland}
-                    />
+        <section className="w-[804px] h-[704px] flex flex-col gap-4 select-none">
+            {/*
+              Contenedor del Lienzo: En lugar de renderizado condicional ({showCanvas && ...}),
+              usamos la clase `hidden` cuando showCanvas es false.
+              Esto evita que el contexto de PixiJS se destruya y conserve el estado gráfico del pasto.
+            */}
+            <div
+                className={`relative flex-1 bg-white border border-[#DFE8E2] rounded-lg overflow-hidden shadow-sm flex items-center justify-center ${
+                    showCanvas ? "" : "hidden"
+                }`}
+            >
+                <SimulationCanvas ref={canvasRef} onReady={createIsland} />
 
-                    {showCycleIndicator && (
-                        <div className="absolute bottom-4 right-4 z-10">
-                            <CycleIndicator cycle={ecosystemMetrics.cycle} />
+                {showCycleIndicator && (
+                    <div className="absolute bottom-4 right-4 z-10">
+                        <CycleIndicator cycle={ecosystemMetrics.cycle} />
+                    </div>
+                )}
+            </div>
+
+            {/* Resumen Inferior */}
+            {hasAnySummary && (
+                <div className="w-[804px] h-[102px] bg-[#fafafa] border border-[#DFE8E2] rounded-lg flex items-center justify-between px-6 gap-5 shadow-sm shrink-0">
+                    {/* Conejos totales */}
+                    {showTotalRabbits && (
+                        <div className="flex items-center gap-[10px]">
+                            <div className="w-[34px] h-[34px] bg-[#E6F3F1] rounded-[9px] flex items-center justify-center">
+                                <RabbitBlock color="#E6F3F1" />
+                            </div>
+                            <div className="flex flex-col gap-[3px]">
+                    <span className="text-[22px] font-semibold leading-[27px] text-[#233C35]">
+                        {ecosystemMetrics.totalRabbits}
+                    </span>
+                                <span className="text-[10px] text-[#74867E] leading-[12px]">
+                        Conejos
+                    </span>
+                            </div>
                         </div>
                     )}
-                </div>
-            )}
 
-            {/* 3. Barra Inferior de Resumen de Simulación (Ajuste Dinámico de Ancho y Centrado) */}
-            {hasAnySummaryBlockVisible && (
-                <div className="w-full flex justify-center shrink-0">
-                    <div className="h-[102px] w-fit max-w-full flex flex-row items-center justify-center border border-[#DFE8E2] rounded-lg bg-[#fafafa] gap-4 px-6 shadow-sm transition-all duration-300">
-                        {/* Cantidad de Conejos */}
-                        {showTotalRabbits && (
-                            <div className="w-[174px] h-[42px] flex flex-row items-center gap-3 justify-center">
-                                <RabbitBlock color="#e6f3f1" />
-                                <p className="font-bold">{ecosystemMetrics.totalRabbits}</p>
+                    {/* Hierba total */}
+                    {showTotalGrass && (
+                        <div className="flex items-center gap-[10px]">
+                            <div className="w-[34px] h-[34px] bg-[#E9F0E6] rounded-[9px] flex items-center justify-center">
+                                <HexagonBlock color="#E9F0E6" />
                             </div>
-                        )}
+                            <div className="flex flex-col gap-[3px]">
+                                <span className="text-[22px] font-semibold leading-[27px] text-[#233C35]">
+                                    {ecosystemMetrics.totalGrass}
+                                </span>
+                                <span className="text-[10px] text-[#74867E] leading-[12px]">
+                                    Hierba viva
+                                </span>
+                            </div>
+                        </div>
+                    )}
 
-                        {/* Cantidad de Pasto Libre (Verde) */}
-                        {showTotalGrass && (
-                            <div className="w-[174px] h-[42px] flex flex-row items-center gap-3 justify-center">
-                                <HexagonBlock color="#e9f0e6" />
-                                <p className="font-bold">{ecosystemMetrics.totalGrass}</p>
+                    {/* Hierba a renovar */}
+                    {showGrassToBeRenewed && (
+                        <div className="flex items-center gap-[10px]">
+                            <div className="w-[34px] h-[34px] bg-[#F8EDC9] rounded-[9px] flex items-center justify-center">
+                                <HexagonBlock color="#F8EDC9" />
                             </div>
-                        )}
+                            <div className="flex flex-col gap-[3px]">
+                                <span className="text-[22px] font-semibold leading-[27px] text-[#233C35]">
+                                    {totalGrassToBeRenewed}
+                                </span>
+                                <span className="text-[10px] text-[#74867E] leading-[12px]">
+                                    Por regenerar
+                                </span>
+                            </div>
+                        </div>
+                    )}
 
-                        {/* Cantidad de Pasto en Regeneración (Amarillo) */}
-                        {showGrassToBeRenewed && (
-                            <div className="w-[174px] h-[42px] flex flex-row items-center gap-3 justify-center">
-                                <HexagonBlock color="#f8edc9" />
-                                <p className="font-bold">{totalGrassToBeRenewed}</p>
+                    {/* Hierba que no se renovará */}
+                    {showGrassToNotBeRenewed && (
+                        <div className="flex items-center gap-[10px]">
+                            <div className="w-[34px] h-[34px] bg-[#F5E3DE] rounded-[9px] flex items-center justify-center">
+                                <HexagonBlock color="#F5E3DE" />
                             </div>
-                        )}
-
-                        {/* Cantidad de Bloques Sin Pasto ni Regeneración (Rojo) */}
-                        {showGrassToNotBeRenewed && (
-                            <div className="w-[174px] h-[42px] flex flex-row items-center gap-3 justify-center">
-                                <HexagonBlock color="#f5e3de" />
-                                <p className="font-bold">{totalGrassToNotBeRenewed}</p>
+                            <div className="flex flex-col gap-[3px]">
+                                <span className="text-[22px] font-semibold leading-[27px] text-[#233C35]">
+                                    {totalGrassToNotBeRenewed}
+                                </span>
+                                <span className="text-[10px] text-[#74867E] leading-[12px]">
+                                    Sin regenerar
+                                </span>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             )}
         </section>

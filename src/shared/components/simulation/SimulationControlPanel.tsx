@@ -101,7 +101,7 @@ export const SimulationControlPanel: React.FC<SimulationControlPanelProps> = ({
                         <ResourceSlider
                             label="Cantidad inicial de conejos"
                             value={rabbitStats.initialCount}
-                            min={1}
+                            min={0}
                             max={10}
                             isBlocked={isInitialRabbitsBlocked}
                             onChange={updateInitialRabbits}

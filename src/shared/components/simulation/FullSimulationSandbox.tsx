@@ -43,7 +43,11 @@ export const FullSimulationSandbox = forwardRef<FullSimulationSandboxRef, { init
             updateRegenerationRate,
         } = useSimulation();
 
-        // Estados de visibilidad limpios y unificados
+        // Contenedor padre para observar su tamaño real con ResizeObserver
+        const containerRef = useRef<HTMLDivElement>(null);
+        const [scale, setScale] = useState(1);
+
+        // Estados de visibilidad
         const [leftVis, setLeftVis] = useState<EcosystemMetricsVisibility>({
             showBiocapacity: true,
             showFootprint: true,
@@ -73,6 +77,50 @@ export const FullSimulationSandbox = forwardRef<FullSimulationSandboxRef, { init
             showRebootButton: true,
             ...initialVisibility?.rightPanel,
         });
+
+        const isLeftVisible = Object.values(leftVis).some(Boolean);
+        const isCenterVisible = Object.values(centerVis).some(Boolean);
+        const isRightVisible = Object.values(rightVis).some(Boolean);
+
+        // -------------------------------------------------------------------------
+        // CÁLCULO DE DIMENSIONES INTRÍNSECAS Y AUTO-ESCALADO
+        // -------------------------------------------------------------------------
+        const computeIntrinsicWidth = () => {
+            let width = 0;
+            let count = 0;
+            if (isLeftVisible) { width += 240; count++; }
+            if (isCenterVisible) { width += 804; count++; }
+            if (isRightVisible) { width += 300; count++; }
+            if (count > 1) width += (count - 1) * 20; // gap-5 (20px)
+            return width > 0 ? width : 804;
+        };
+
+        const intrinsicWidth = computeIntrinsicWidth();
+        const intrinsicHeight = 704;
+
+        useEffect(() => {
+            if (!containerRef.current) return;
+
+            const updateScale = () => {
+                if (!containerRef.current) return;
+                const { clientWidth, clientHeight } = containerRef.current;
+
+                if (clientWidth === 0 || clientHeight === 0) return;
+
+                // Escala limitante por ancho o por alto manteniendo proporción
+                const scaleX = clientWidth / intrinsicWidth;
+                const scaleY = clientHeight / intrinsicHeight;
+                const newScale = Math.min(scaleX, scaleY);
+
+                setScale(newScale);
+            };
+
+            const observer = new ResizeObserver(updateScale);
+            observer.observe(containerRef.current);
+            updateScale();
+
+            return () => observer.disconnect();
+        }, [intrinsicWidth, isLeftVisible, isCenterVisible, isRightVisible]);
 
         // Control de ejecución
         const [isAnimating, setIsAnimating] = useState(false);
@@ -114,7 +162,6 @@ export const FullSimulationSandbox = forwardRef<FullSimulationSandboxRef, { init
             resetSimulation();
         };
 
-        // API imperativa simple sin boilerplate redundante
         useImperativeHandle(ref, () => ({
             setVisibility: (config) => {
                 if (config.leftPanel) setLeftVis((p) => ({ ...p, ...config.leftPanel }));
@@ -134,44 +181,50 @@ export const FullSimulationSandbox = forwardRef<FullSimulationSandboxRef, { init
             setRegenerationRate: updateRegenerationRate,
         }));
 
-        const isLeftVisible = Object.values(leftVis).some(Boolean);
-        const isCenterVisible = Object.values(centerVis).some(Boolean);
-        const isRightVisible = Object.values(rightVis).some(Boolean);
-
         return (
-            <div className="flex gap-5 h-[704px] items-center justify-center">
-                {isLeftVisible && <EcosystemMetricsPanel ecosystemMetrics={ecosystemMetrics} visibility={leftVis} />}
-                {isCenterVisible && (
-                    <SimulationCenterPanel
-                        canvasRef={canvasRef}
-                        createIsland={createIsland}
-                        ecosystemMetrics={ecosystemMetrics}
-                        totalGrassToBeRenewed={ecosystemMetrics.biocapacity}
-                        totalGrassToNotBeRenewed={Math.max(0, ecosystemMetrics.grassMaxLC - (ecosystemMetrics.totalGrass + ecosystemMetrics.biocapacity))}
-                        visibility={centerVis}
-                    />
-                )}
-                {isRightVisible && (
-                    <SimulationControlPanel
-                        rabbitStats={rabbitStats}
-                        grassStats={grassStats}
-                        isInitialRabbitsBlocked={isAnimating || isPlaying || ecosystemMetrics.cycle > 1}
-                        isAnySliderBlocked={isAnimating || isPlaying}
-                        isPlayDisabled={isPlaying || isAnimating}
-                        isStopDisabled={!isPlaying}
-                        isNextDisabled={isPlaying || isAnimating}
-                        isRebootDisabled={isPlaying || isAnimating}
-                        updateInitialRabbits={updateInitialRabbits}
-                        updateConsumptionRate={updateConsumptionRate}
-                        updateDeathRate={updateDeathRate}
-                        updateRegenerationRate={updateRegenerationRate}
-                        handlePlay={handlePlay}
-                        handleStop={handleStop}
-                        handleNextCycle={runSingleCycle}
-                        handleReset={handleReset}
-                        visibility={rightVis}
-                    />
-                )}
+            <div ref={containerRef} className="w-full h-full flex items-center justify-center overflow-hidden">
+                <div
+                    style={{
+                        width: intrinsicWidth,
+                        height: intrinsicHeight,
+                        transform: `scale(${scale})`,
+                        transformOrigin: "center center",
+                    }}
+                    className="flex gap-5 shrink-0 items-center justify-center transition-all duration-300"
+                >
+                    {isLeftVisible && <EcosystemMetricsPanel ecosystemMetrics={ecosystemMetrics} visibility={leftVis} />}
+                    {isCenterVisible && (
+                        <SimulationCenterPanel
+                            canvasRef={canvasRef}
+                            createIsland={createIsland}
+                            ecosystemMetrics={ecosystemMetrics}
+                            totalGrassToBeRenewed={ecosystemMetrics.biocapacity}
+                            totalGrassToNotBeRenewed={Math.max(0, ecosystemMetrics.grassMaxLC - (ecosystemMetrics.totalGrass + ecosystemMetrics.biocapacity))}
+                            visibility={centerVis}
+                        />
+                    )}
+                    {isRightVisible && (
+                        <SimulationControlPanel
+                            rabbitStats={rabbitStats}
+                            grassStats={grassStats}
+                            isInitialRabbitsBlocked={isAnimating || isPlaying || ecosystemMetrics.cycle > 1}
+                            isAnySliderBlocked={isAnimating || isPlaying}
+                            isPlayDisabled={isPlaying || isAnimating}
+                            isStopDisabled={!isPlaying}
+                            isNextDisabled={isPlaying || isAnimating}
+                            isRebootDisabled={isPlaying || isAnimating}
+                            updateInitialRabbits={updateInitialRabbits}
+                            updateConsumptionRate={updateConsumptionRate}
+                            updateDeathRate={updateDeathRate}
+                            updateRegenerationRate={updateRegenerationRate}
+                            handlePlay={handlePlay}
+                            handleStop={handleStop}
+                            handleNextCycle={runSingleCycle}
+                            handleReset={handleReset}
+                            visibility={rightVis}
+                        />
+                    )}
+                </div>
             </div>
         );
     }

@@ -31,7 +31,7 @@ export const EcosystemMetricsPanel: React.FC<EcosystemMetricsPanelProps> = ({
         <aside className="w-[240px] h-[704px] flex flex-col justify-center gap-4 select-none">
             {/* Bloque de Métricas Superiores */}
             {hasAnyMetric && (
-                <div className="w-[240px] h-[432px] bg-white border border-[#DFE8E2] rounded-lg
+                <div className="py-[20px] bg-white border border-[#DFE8E2] rounded-lg
                 flex flex-col justify-center items-center gap-[20px]
                 shadow-sm shrink-0">
 

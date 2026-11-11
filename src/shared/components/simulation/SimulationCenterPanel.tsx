@@ -45,12 +45,8 @@ export const SimulationCenterPanel: React.FC<SimulationCenterPanelProps> = ({
     const hasAnySummary = showTotalRabbits || showTotalGrass || showGrassToBeRenewed || showGrassToNotBeRenewed;
 
     return (
-        <section className="w-[804px] h-[704px] flex flex-col gap-4 select-none">
-            {/*
-              Contenedor del Lienzo: En lugar de renderizado condicional ({showCanvas && ...}),
-              usamos la clase `hidden` cuando showCanvas es false.
-              Esto evita que el contexto de PixiJS se destruya y conserve el estado gráfico del pasto.
-            */}
+        <section className="w-[804px] h-[704px] flex flex-col items-center gap-4 select-none">
+
             <div
                 className={`relative flex-1 bg-white border border-[#DFE8E2] rounded-lg overflow-hidden shadow-sm flex items-center justify-center ${
                     showCanvas ? "" : "hidden"
@@ -67,27 +63,27 @@ export const SimulationCenterPanel: React.FC<SimulationCenterPanelProps> = ({
 
             {/* Resumen Inferior */}
             {hasAnySummary && (
-                <div className="w-[804px] h-[102px] bg-[#fafafa] border border-[#DFE8E2] rounded-lg flex items-center justify-between px-6 gap-5 shadow-sm shrink-0">
+                <div className="w-fit h-[102px] px-[24px] bg-[#fafafa] border border-[#DFE8E2] rounded-lg flex items-center  gap-5 shadow-sm shrink-0">
                     {/* Conejos totales */}
                     {showTotalRabbits && (
-                        <div className="flex items-center gap-[10px]">
+                        <div className="w-[174px] h-[42px] flex items-center gap-[10px]">
                             <div className="w-[34px] h-[34px] bg-[#E6F3F1] rounded-[9px] flex items-center justify-center">
                                 <RabbitBlock color="#E6F3F1" />
                             </div>
                             <div className="flex flex-col gap-[3px]">
-                    <span className="text-[22px] font-semibold leading-[27px] text-[#233C35]">
-                        {ecosystemMetrics.totalRabbits}
-                    </span>
+                                <span className="text-[22px] font-semibold leading-[27px] text-[#233C35]">
+                                    {ecosystemMetrics.totalRabbits}
+                                </span>
                                 <span className="text-[10px] text-[#74867E] leading-[12px]">
-                        Conejos
-                    </span>
+                                    Conejos
+                                </span>
                             </div>
                         </div>
                     )}
 
                     {/* Hierba total */}
                     {showTotalGrass && (
-                        <div className="flex items-center gap-[10px]">
+                        <div className="w-[174px] h-[42px] flex items-center gap-[10px]">
                             <div className="w-[34px] h-[34px] bg-[#E9F0E6] rounded-[9px] flex items-center justify-center">
                                 <HexagonBlock color="#E9F0E6" />
                             </div>
@@ -104,7 +100,7 @@ export const SimulationCenterPanel: React.FC<SimulationCenterPanelProps> = ({
 
                     {/* Hierba a renovar */}
                     {showGrassToBeRenewed && (
-                        <div className="flex items-center gap-[10px]">
+                        <div className="w-[174px] h-[42px] flex items-center gap-[10px]">
                             <div className="w-[34px] h-[34px] bg-[#F8EDC9] rounded-[9px] flex items-center justify-center">
                                 <HexagonBlock color="#F8EDC9" />
                             </div>
@@ -121,7 +117,7 @@ export const SimulationCenterPanel: React.FC<SimulationCenterPanelProps> = ({
 
                     {/* Hierba que no se renovará */}
                     {showGrassToNotBeRenewed && (
-                        <div className="flex items-center gap-[10px]">
+                        <div className="w-[174px] h-[42px] flex items-center gap-[10px]">
                             <div className="w-[34px] h-[34px] bg-[#F5E3DE] rounded-[9px] flex items-center justify-center">
                                 <HexagonBlock color="#F5E3DE" />
                             </div>

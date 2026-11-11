@@ -72,9 +72,11 @@ export const SimulationControlPanel: React.FC<SimulationControlPanelProps> = ({
     const hasButtons = showPlayButton || showStopButton || showNextButton || showRebootButton;
 
     return (
-        <aside className="w-[300px] h-[704px] bg-white border border-[#DFE8E2] rounded-lg
+        <aside className="w-[300px] py-[25px] bg-white border border-[#DFE8E2] rounded-lg
         flex flex-col items-center justify-center gap-[18px]
         shadow-sm select-none">
+
+            {/* texto */}
             <div className="w-[260px] h-[38px] flex flex-col items-start gap-[7px] shrink-0">
                 {/* Título e Ícono */}
                 <div className="w-full h-[18px] flex flex-row justify-between items-center">
@@ -94,7 +96,7 @@ export const SimulationControlPanel: React.FC<SimulationControlPanelProps> = ({
 
             {/* Sliders */}
             {hasSliders && (
-                <div className="w-[260px] h-[432px] flex flex-col gap-3 items-center justify-center">
+                <div className="w-[260px] py-[25px] flex flex-col gap-3 items-center justify-center">
                     {showInitialRabbitsSlider && (
                         <ResourceSlider
                             label="Cantidad inicial de conejos"

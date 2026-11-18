@@ -1,6 +1,6 @@
 // src/App.tsx
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { SimulationTestView } from "./chapters/SimulationTestView";
 import { Chapter1View } from "./chapters/1_Introduction/1_IntroductionView.tsx";
 import { Chapter2View } from "./chapters/2_BaseContext/Chapter2View.tsx";
@@ -22,71 +22,82 @@ const CHAPTER_VIEWS: Record<number, React.FC<{ onNext?: () => void; onPrev?: () 
 };
 
 export function App() {
-    const [currentChapter, setCurrentChapter] = useState(2);
+    const [currentChapter, setCurrentChapter] = useState(1);
     const totalChapters = 7;
 
-    const ActiveView = CHAPTER_VIEWS[currentChapter] || Chapter2View;
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [scale, setScale] = useState(1);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const updateScale = () => {
+            if (!containerRef.current) return;
+            const { clientWidth, clientHeight } = containerRef.current;
+            if (clientWidth === 0 || clientHeight === 0) return;
+
+            const scaleX = clientWidth / 1440;
+            const scaleY = clientHeight / 704;
+            setScale(Math.min(scaleX, scaleY));
+        };
+
+        const observer = new ResizeObserver(updateScale);
+        observer.observe(containerRef.current);
+        updateScale();
+
+        return () => observer.disconnect();
+    }, []);
+
+    const ActiveView = CHAPTER_VIEWS[currentChapter] || Chapter1View;
 
     const handleNext = () => currentChapter < totalChapters && setCurrentChapter((p) => p + 1);
     const handlePrev = () => currentChapter > 1 && setCurrentChapter((p) => p - 1);
 
     return (
         <main className="relative w-screen h-screen overflow-hidden bg-[#F4F7F6] flex flex-col items-center justify-between p-4 select-none">
-            {/* Lienzo del Capítulo Activo */}
-            <div className="w-full flex-1 max-w-[1440px] max-h-[704px] flex items-center justify-center overflow-hidden my-auto">
-                <ActiveView onNext={handleNext} onPrev={handlePrev} />
+            {/* Contenedor con Escalado Maestro (1440 x 704) */}
+            <div
+                ref={containerRef}
+                className="w-full flex-1 flex items-center justify-center overflow-hidden"
+            >
+                <div
+                    style={{
+                        width: 1440,
+                        height: 704,
+                        transform: `scale(${scale})`,
+                        transformOrigin: "center center",
+                    }}
+                    className="shrink-0 relative overflow-hidden"
+                >
+                    <ActiveView onNext={handleNext} onPrev={handlePrev} />
+                </div>
             </div>
 
-            {/* Navegación Inferior Estilo "Evolution of Trust" */}
-            <nav className="flex items-center gap-6 bg-white/80 backdrop-blur-sm border border-[#DFE8E2] px-5 py-2 rounded-full shadow-sm z-50">
-                <button
-                    type="button"
-                    onClick={handlePrev}
-                    disabled={currentChapter <= 1}
-                    className="text-xs font-bold text-slate-500 hover:text-[#233C35] disabled:opacity-30 transition"
-                >
-                    PREV
-                </button>
-
-                {/* Pelotas / Dots de los Capítulos 1 al 7 */}
-                <div className="flex items-center gap-2">
-                    {Array.from({ length: totalChapters }, (_, i) => i + 1).map((num) => (
-                        <button
-                            key={num}
-                            type="button"
-                            onClick={() => setCurrentChapter(num)}
-                            title={`Capítulo ${num}`}
-                            className={`rounded-full transition-all ${
-                                currentChapter === num
-                                    ? "w-3.5 h-3.5 bg-[#233C35]"
-                                    : "w-2.5 h-2.5 bg-slate-300 hover:bg-[#4C9289]"
-                            }`}
-                        />
-                    ))}
-
-                    <div className="w-px h-3 bg-slate-300 mx-1" />
-
-                    {/* Dot Especial para el Sandbox de Pruebas */}
+            {/* Navegación Inferior Simple (Solo Dots) */}
+            <nav className="flex items-center gap-2 py-1 z-50">
+                {Array.from({ length: totalChapters }, (_, i) => i + 1).map((num) => (
                     <button
+                        key={num}
                         type="button"
-                        onClick={() => setCurrentChapter(0)}
-                        title="Sandbox de Pruebas"
-                        className={`rounded-full transition-all ${
-                            currentChapter === 0
-                                ? "w-3.5 h-3.5 bg-amber-600"
-                                : "w-2.5 h-2.5 bg-amber-300 hover:bg-amber-500"
+                        onClick={() => setCurrentChapter(num)}
+                        title={`Capítulo ${num}`}
+                        className={`w-2.5 h-2.5 rounded-full ${
+                            currentChapter === num ? "bg-slate-800" : "bg-slate-300"
                         }`}
                     />
-                </div>
+                ))}
 
+                <span className="text-slate-300 text-xs mx-1">|</span>
+
+                {/* Dot Sandbox */}
                 <button
                     type="button"
-                    onClick={handleNext}
-                    disabled={currentChapter >= totalChapters || currentChapter === 0}
-                    className="text-xs font-bold text-[#233C35] hover:text-[#4C9289] disabled:opacity-30 transition"
-                >
-                    NEXT
-                </button>
+                    onClick={() => setCurrentChapter(0)}
+                    title="Sandbox"
+                    className={`w-2.5 h-2.5 rounded-full ${
+                        currentChapter === 0 ? "bg-amber-600" : "bg-amber-300"
+                    }`}
+                />
             </nav>
         </main>
     );

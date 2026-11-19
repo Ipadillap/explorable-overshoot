@@ -1,6 +1,3 @@
-import type { RefObject } from "react";
-import type { FullSimulationSandboxRef } from "../simulation";
-
 export interface NarrativeStep {
     id: string;
     text: string;
@@ -10,5 +7,4 @@ export interface NarrativeStep {
 export interface ChapterViewProps {
     onNext?: () => void;
     onPrev?: () => void;
-    sandboxRef?: RefObject<FullSimulationSandboxRef | null>;
 }

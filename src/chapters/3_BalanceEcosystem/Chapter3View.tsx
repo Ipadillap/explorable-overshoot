@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { BALANCE_ECOSYSTEM_NARRATIVE } from "./3_BalanceEcosystemScript.ts";
 import { useStepper } from "../../narrative/useStepper.ts";
+import { FullSimulationSandbox, type FullSimulationSandboxRef } from "../../simulation";
 import type { ChapterViewProps } from "../../narrative/types.ts";
 
 import { SubChapter3_1 } from "./subchapters/SubChapter3_1.tsx";
@@ -15,59 +16,41 @@ const SUBCHAPTER_VIEWS = [
     SubChapter3_4,
 ];
 
-export function Chapter3View({ onNext, sandboxRef }: ChapterViewProps) {
+export function Chapter3View({ onNext }: ChapterViewProps) {
+    const sandboxRef = useRef<FullSimulationSandboxRef>(null);
     const totalSteps = BALANCE_ECOSYSTEM_NARRATIVE.length;
     const { index: currentStepIndex, next } = useStepper(totalSteps, onNext);
 
     useEffect(() => {
-        if (!sandboxRef?.current) return;
+        if (!sandboxRef.current) return;
 
-        // Asegurar parámetros base de equilibrio (5 conejos, 5 consumo, 5 muerte, 1 regeneración)
+        sandboxRef.current.reset();
+        sandboxRef.current.setInitialRabbits(5);
         sandboxRef.current.setConsumptionRate(5);
         sandboxRef.current.setDeathRate(5);
         sandboxRef.current.setRegenerationRate(1);
+    }, []);
 
-        // Panel izquierdo (métricas de sobregiro) aún oculto hasta el Cap 4
-        sandboxRef.current.setLeftPanelVisibility({
-            showBiocapacity: false,
-            showFootprint: false,
-            showConsumed: false,
-            showOvershoot: false,
-        });
+    useEffect(() => {
+        if (!sandboxRef.current) return;
 
-        // Panel central completo (isla, ciclo, conejos e indicadores de hierba)
         sandboxRef.current.setCenterPanelVisibility({
             showCanvas: true,
-            showCycleIndicator: true,
+            showCycleIndicator: currentStepIndex >= 1,
             showTotalRabbits: true,
             showTotalGrass: true,
             showGrassToBeRenewed: true,
             showGrassToNotBeRenewed: true,
         });
-
-        // Panel derecho: mostrar conversión (5 hierba -> 1 conejo) y tasa de muerte natural
-        sandboxRef.current.setRightPanelVisibility({
-            showConversionRate: true,
-            showInitialRabbitsSlider: false,
-            showConsumptionRateSlider: false,
-            showDeathRateSlider: false,
-            showRegenerationRateSlider: false,
-            showPlayButton: false,
-            showStopButton: false,
-            showNextButton: false,
-            showRebootButton: false,
-        });
-    }, [sandboxRef]);
+    }, [currentStepIndex]);
 
     const handleNextStep = () => {
-        // Al pulsar "Iniciar Simulación" en el paso 3.2 (index 1), arranca el loop de ciclos
         if (currentStepIndex === 1) {
-            sandboxRef?.current?.play();
+            sandboxRef.current?.play();
         }
 
-        // Al pasar de 3.3 (index 2) a la conclusión 3.4 (index 3), detenemos la reproducción
         if (currentStepIndex === 2) {
-            sandboxRef?.current?.stop();
+            sandboxRef.current?.stop();
         }
 
         next();
@@ -77,7 +60,45 @@ export function Chapter3View({ onNext, sandboxRef }: ChapterViewProps) {
     const currentStep = BALANCE_ECOSYSTEM_NARRATIVE[currentStepIndex];
 
     return (
-        <section className="w-[1440px] h-[704px] relative overflow-hidden select-none pointer-events-none">
+        <section className="w-[1440px] h-[704px] relative overflow-hidden select-none bg-[#FFFFFF]">
+            {/* CAPA BASE: Simulación propia del Capítulo 3 */}
+            <div className="w-[1440px] h-[704px] grid grid-cols-[1fr_500px] gap-[32px] items-center p-[48px]">
+                <div className="w-full h-full bg-[#F4F7F6]/60 border border-[#DFE8E2] rounded-[16px] flex items-center justify-center relative overflow-hidden p-[16px]">
+                    <FullSimulationSandbox
+                        ref={sandboxRef}
+                        initialVisibility={{
+                            leftPanel: {
+                                showBiocapacity: false,
+                                showFootprint: false,
+                                showConsumed: false,
+                                showOvershoot: false,
+                            },
+                            centerPanel: {
+                                showCanvas: true,
+                                showCycleIndicator: false,
+                                showTotalRabbits: true,
+                                showTotalGrass: true,
+                                showGrassToBeRenewed: true,
+                                showGrassToNotBeRenewed: true,
+                            },
+                            rightPanel: {
+                                showConversionRate: true,
+                                showInitialRabbitsSlider: false,
+                                showConsumptionRateSlider: false,
+                                showDeathRateSlider: false,
+                                showRegenerationRateSlider: false,
+                                showPlayButton: false,
+                                showStopButton: false,
+                                showNextButton: false,
+                                showRebootButton: false,
+                            },
+                        }}
+                    />
+                </div>
+                <div />
+            </div>
+
+            {/* CAPA SUPERIOR: Subcapítulo activo */}
             {ActiveSubChapter && currentStep && (
                 <div className="absolute inset-0 z-10 pointer-events-none">
                     <ActiveSubChapter

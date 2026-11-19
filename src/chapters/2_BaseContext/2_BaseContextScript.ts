@@ -23,7 +23,7 @@ export const BASE_CONTEXT_NARRATIVE: NarrativeStep[] = [
     },
     {
         id: "2.5",
-        text: "Además, al terminar cada ciclo, la hierba puede sembrar nuevas unidades (los polígonos amarillos).",
+        text: "Como es lógico, después de cierto tiempo el pasto vuelve a crecer. Por eso hay que poner especial atención a los hexágonos amarillos a medida que avanzan los ciclos: son los que se están recuperando para volver a estar disponibles.",
         buttonLabel: "Siguiente"
     },
     {

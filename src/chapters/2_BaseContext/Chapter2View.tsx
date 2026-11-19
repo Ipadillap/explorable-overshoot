@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { BASE_CONTEXT_NARRATIVE } from "./2_BaseContextScript.ts";
 import { useStepper } from "../../narrative/useStepper.ts";
+import { FullSimulationSandbox, type FullSimulationSandboxRef } from "../../simulation";
 import type { ChapterViewProps } from "../../narrative/types.ts";
 
 import { SubChapter2_1 } from "./subchapters/SubChapter2_1.tsx";
@@ -21,32 +22,13 @@ const SUBCHAPTER_VIEWS = [
     SubChapter2_7,
 ];
 
-export function Chapter2View({ onNext, sandboxRef }: ChapterViewProps) {
+export function Chapter2View({ onNext }: ChapterViewProps) {
+    const sandboxRef = useRef<FullSimulationSandboxRef>(null);
     const totalSteps = BASE_CONTEXT_NARRATIVE.length;
     const { index: currentStepIndex, next: handleNextStep } = useStepper(totalSteps, onNext);
 
     useEffect(() => {
-        if (!sandboxRef?.current) return;
-
-        // Mantener paneles laterales ocultos durante todo el Capítulo 2
-        sandboxRef.current.setLeftPanelVisibility({
-            showBiocapacity: false,
-            showFootprint: false,
-            showConsumed: false,
-            showOvershoot: false,
-        });
-
-        sandboxRef.current.setRightPanelVisibility({
-            showConversionRate: false,
-            showInitialRabbitsSlider: false,
-            showConsumptionRateSlider: false,
-            showDeathRateSlider: false,
-            showRegenerationRateSlider: false,
-            showPlayButton: false,
-            showStopButton: false,
-            showNextButton: false,
-            showRebootButton: false,
-        });
+        if (!sandboxRef.current) return;
 
         // Steps 0 a 3 (IDs 2.1 a 2.4): Isla visible, conejos iniciales en 0
         if (currentStepIndex <= 3) {
@@ -66,7 +48,7 @@ export function Chapter2View({ onNext, sandboxRef }: ChapterViewProps) {
             sandboxRef.current.setInitialRabbits(0);
             sandboxRef.current.setCenterPanelVisibility({
                 showCanvas: true,
-                showCycleIndicator: true,
+                showCycleIndicator: false,
                 showTotalGrass: true,
                 showGrassToBeRenewed: true,
                 showGrassToNotBeRenewed: true,
@@ -79,20 +61,63 @@ export function Chapter2View({ onNext, sandboxRef }: ChapterViewProps) {
             sandboxRef.current.setInitialRabbits(5);
             sandboxRef.current.setCenterPanelVisibility({
                 showCanvas: true,
-                showCycleIndicator: true,
+                showCycleIndicator: false,
                 showTotalRabbits: true,
                 showTotalGrass: true,
                 showGrassToBeRenewed: true,
                 showGrassToNotBeRenewed: true,
             });
         }
-    }, [currentStepIndex, sandboxRef]);
+    }, [currentStepIndex]);
 
     const ActiveSubChapter = SUBCHAPTER_VIEWS[currentStepIndex];
     const currentStep = BASE_CONTEXT_NARRATIVE[currentStepIndex];
+    const isSimulationVisible = currentStepIndex >= 2;
 
     return (
-        <section className="w-[1440px] h-[704px] relative overflow-hidden select-none pointer-events-none">
+        <section className="w-[1440px] h-[704px] relative overflow-hidden select-none bg-[#FFFFFF]">
+            {/* CAPA BASE: Instancia local de la simulación */}
+            <div
+                className={`w-[1440px] h-[704px] grid grid-cols-[1fr_500px] gap-[32px] items-center p-[48px] transition-opacity duration-300 ${
+                    isSimulationVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+            >
+                <div className="w-full h-full bg-[#F4F7F6]/60 border border-[#DFE8E2] rounded-[16px] flex items-center justify-center relative overflow-hidden p-[16px]">
+                    <FullSimulationSandbox
+                        ref={sandboxRef}
+                        initialVisibility={{
+                            leftPanel: {
+                                showBiocapacity: false,
+                                showFootprint: false,
+                                showConsumed: false,
+                                showOvershoot: false,
+                            },
+                            centerPanel: {
+                                showCanvas: true,
+                                showCycleIndicator: false,
+                                showTotalRabbits: false,
+                                showTotalGrass: false,
+                                showGrassToBeRenewed: false,
+                                showGrassToNotBeRenewed: false,
+                            },
+                            rightPanel: {
+                                showConversionRate: false,
+                                showInitialRabbitsSlider: false,
+                                showConsumptionRateSlider: false,
+                                showDeathRateSlider: false,
+                                showRegenerationRateSlider: false,
+                                showPlayButton: false,
+                                showStopButton: false,
+                                showNextButton: false,
+                                showRebootButton: false,
+                            },
+                        }}
+                    />
+                </div>
+                <div />
+            </div>
+
+            {/* CAPA SUPERIOR: Subcapítulo activo */}
             {ActiveSubChapter && currentStep && (
                 <div className="absolute inset-0 z-10 pointer-events-none">
                     <ActiveSubChapter

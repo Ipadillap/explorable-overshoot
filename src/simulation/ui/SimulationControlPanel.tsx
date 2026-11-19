@@ -79,15 +79,7 @@ export const SimulationControlPanel: React.FC<SimulationControlPanelProps> = ({
         shadow-sm select-none">
 
             {/* Encabezado + Indicador visual de conversión (pasto -> conejo) */}
-            <div className="w-[260px] h-[38px] flex flex-row justify-between items-center shrink-0">
-                <div className="flex flex-col items-start gap-[7px]">
-                    <h3 className="text-[15px] font-semibold leading-[18px] text-[#233C35]">
-                        Controles
-                    </h3>
-                    <p className="text-[11px] font-normal leading-[13px] text-[#74867E]">
-                        Ajusta los parámetros
-                    </p>
-                </div>
+            <div className="w-[260px] h-[38px] flex flex-row justify-center items-center shrink-0">
 
                 {showConversionRate && (
                     <div

@@ -1,12 +1,9 @@
 // src/chapters/Chapter7/Chapter7View.tsx
 
 import { useRef, useState } from "react";
-import {
-    FullSimulationSandbox,
-    type FullSimulationSandboxRef,
-} from "../../shared/components/simulation/FullSimulationSandbox";
-import { SimulationButton } from "../../shared/components/SimulationButton";
-import { YOUR_TURN_NARRATIVE } from "./narrative/7_YourTurnScript";
+import { SimulationButton } from "../../shared/ui/SimulationButton.tsx";
+import { YOUR_TURN_NARRATIVE } from "./7_YourTurnScript.ts";
+import {FullSimulationSandbox, type FullSimulationSandboxRef} from "../../simulation";
 
 export function Chapter7View() {
     const sandboxRef = useRef<FullSimulationSandboxRef>(null);

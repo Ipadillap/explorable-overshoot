@@ -1,5 +1,6 @@
-import { SimulationButton } from '../../../shared/components/SimulationButton';
-import type { NarrativeStep } from '../narrative/1_IntroductionScript';
+import { SimulationButton } from '../../../shared/ui/SimulationButton.tsx';
+import { THEME } from '../../../shared/theme.ts';
+import type { NarrativeStep } from '../../../narrative/types.ts';
 
 interface SubChapterProps {
     step: NarrativeStep;
@@ -8,27 +9,46 @@ interface SubChapterProps {
     onNext: () => void;
 }
 
-export function SubChapter1_5({ step, stepNumber, totalSteps, onNext }: SubChapterProps) {
+function renderHighlightedText(paragraph: string) {
+    const parts = paragraph.split(/(\*\*.*?\*\*)/g);
+
+    return parts.map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+            return (
+                <strong key={index} className="font-semibold text-slate-800">
+                    {part.slice(2, -2)}
+                </strong>
+            );
+        }
+        return part;
+    });
+}
+
+export function SubChapter1_5({ step, onNext }: SubChapterProps) {
+    const paragraphs = step.text.split('\n\n').filter(Boolean);
+
     return (
-        <section className="w-full h-full flex flex-col items-center justify-center p-8 animate-fadeIn">
-            <div className="w-[620px] bg-white border-2 border-[#4C9289] rounded-2xl p-10 shadow-md flex flex-col items-center text-center gap-8">
-                <div className="flex flex-col items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-widest text-[#4C9289]">
-                        Capítulo 1 — Paso {stepNumber} / {totalSteps}
-                    </span>
-                    <h2 className="text-3xl font-extrabold text-slate-800">
-                        Descúbrelo por ti mismo
-                    </h2>
+        <section className="w-[1440px] h-[704px] flex flex-col items-center justify-center p-[32px]">
+            <div className="flex flex-col items-center gap-[24px]">
+                <div className="w-[820px] bg-white border-2 border-[#4C9289] rounded-[16px] p-[40px] shadow-md flex flex-col gap-[16px] text-center">
+                    <p className={`${THEME.fontFamily} ${THEME.featuredText}`}>
+                        Déjame contarte una historia...
+                    </p>
+
+                    {paragraphs.map((paragraph, index) => (
+                        <p
+                            key={index}
+                            className={`${THEME.fontFamily} ${THEME.primaryTextColor} ${THEME.bodyTextSize}`}
+                        >
+                            {renderHighlightedText(paragraph)}
+                        </p>
+                    ))}
                 </div>
 
-                <p className="text-base text-slate-600 leading-relaxed font-medium">
-                    {step.text}
-                </p>
-
-                <div className="w-56">
+                <div className="w-[340px] pt-[8px]">
                     <SimulationButton
-                        icon={1}
-                        label={step.buttonLabel || "Manos a la obra."}
+                        icon=""
+                        label={step.buttonLabel || "¿Te gustaría conocer mejor este evento natural?"}
                         onClick={onNext}
                     />
                 </div>

@@ -1,6 +1,6 @@
-import { SimulationButton } from '../../../shared/components/SimulationButton';
+import { SimulationButton } from '../../../shared/ui/SimulationButton.tsx';
 import { THEME } from '../../../shared/theme';
-import type { NarrativeStep } from '../narrative/1_IntroductionScript';
+import type {NarrativeStep} from "../../../narrative/types.ts";
 
 interface SubChapterProps {
     step: NarrativeStep;

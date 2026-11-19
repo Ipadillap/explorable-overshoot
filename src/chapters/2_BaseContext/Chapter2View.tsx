@@ -1,22 +1,18 @@
-import { useRef, useState, useEffect } from "react";
-import { BASE_CONTEXT_NARRATIVE } from "./narrative/2_BaseContextScript";
-import { NarrativeCard } from "./components/NarrativeCard";
-import {
-    FullSimulationSandbox,
-    type FullSimulationSandboxRef,
-} from "../../shared/components/simulation/FullSimulationSandbox";
+import { useRef, useEffect } from "react";
+import { BASE_CONTEXT_NARRATIVE } from "./2_BaseContextScript.ts";
+import { NarrativeCard } from "../../narrative/NarrativeCard.tsx";
+import { useStepper } from "../../narrative/useStepper.ts";
+import { FullSimulationSandbox, type FullSimulationSandboxRef } from "../../simulation";
+import type { ChapterViewProps } from "../../narrative/types.ts";
 
-interface Chapter2ViewProps {
-    onNext?: () => void;
-    onPrev?: () => void;
-}
 
-export function Chapter2View({ onNext }: Chapter2ViewProps) {
+
+export function Chapter2View({ onNext }: ChapterViewProps) {
     const sandboxRef = useRef<FullSimulationSandboxRef>(null);
-    const [currentStepIndex, setCurrentStepIndex] = useState(0);
-
     const totalSteps = BASE_CONTEXT_NARRATIVE.length;
+    const { index: currentStepIndex, next: handleNextStep } = useStepper(totalSteps, onNext);
     const currentNarrative = BASE_CONTEXT_NARRATIVE[currentStepIndex];
+
 
     // Reacción imperativa (Step 0 = ID 1, Step 1 = ID 2, etc.)
     useEffect(() => {
@@ -58,14 +54,6 @@ export function Chapter2View({ onNext }: Chapter2ViewProps) {
             });
         }
     }, [currentStepIndex]);
-
-    const handleNextStep = () => {
-        if (currentStepIndex < totalSteps - 1) {
-            setCurrentStepIndex((prev) => prev + 1);
-        } else {
-            onNext?.();
-        }
-    };
 
     return (
         <div className="w-full h-full grid grid-cols-2 gap-8 items-center p-8 select-none bg-[#F4F7F6]">
@@ -116,11 +104,11 @@ export function Chapter2View({ onNext }: Chapter2ViewProps) {
             <section className="w-full flex items-center justify-center">
                 {currentNarrative && (
                     <NarrativeCard
-                        text={currentNarrative.text}
+                        chapterLabel="Capítulo 2 — Conociendo a los Protagonistas"
+                        step={currentNarrative}
                         stepNumber={currentStepIndex + 1}
                         totalSteps={totalSteps}
-                        buttonLabel={currentNarrative.buttonLabel}
-                        onNextStep={handleNextStep}
+                        onNext={handleNextStep}
                     />
                 )}
             </section>

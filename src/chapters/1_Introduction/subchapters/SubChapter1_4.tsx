@@ -1,5 +1,6 @@
-import { SimulationButton } from '../../../shared/components/SimulationButton';
-import type { NarrativeStep } from '../narrative/1_IntroductionScript';
+import { SimulationButton } from '../../../shared/ui/SimulationButton.tsx';
+import { THEME } from '../../../shared/theme.ts';
+import type { NarrativeStep } from '../../../narrative/types.ts';
 
 interface SubChapterProps {
     step: NarrativeStep;
@@ -8,30 +9,25 @@ interface SubChapterProps {
     onNext: () => void;
 }
 
-export function SubChapter1_4({ step, stepNumber, totalSteps, onNext }: SubChapterProps) {
+export function SubChapter1_4({ step, onNext }: SubChapterProps) {
     return (
-        <section className="w-full h-full grid grid-cols-[1fr_500px] gap-8 items-center p-12 animate-fadeIn">
-            <div className="w-full h-[450px] bg-emerald-900/5 border-2 border-dashed border-[#DFE8E2] rounded-2xl flex items-center justify-center text-slate-400 font-medium">
-                [Imagen referencial: Variables de consumo]
-            </div>
+        <section className="w-[1440px] h-[704px] grid grid-cols-[450px_500px] justify-center gap-[32px] items-center p-[48px]">
+            {/*/!* Izquierda: Placeholder cuadrado para imagen *!/*/}
+            {/*<div className="w-[450px] h-[450px] bg-white border border-dashed border-[#DFE8E2] rounded-[16px] flex items-center justify-center text-[13px] text-slate-400">*/}
+            {/*    [Imagen referencial: Variables de consumo]*/}
+            {/*</div>*/}
 
-            <div className="bg-white border border-[#DFE8E2] rounded-2xl p-8 shadow-sm flex flex-col justify-between gap-6">
-                <div className="flex flex-col gap-2">
-                    <span className="text-xs font-bold uppercase tracking-widest text-[#4C9289]">
-                        Capítulo 1 — Paso {stepNumber} / {totalSteps}
-                    </span>
-                    <h3 className="text-xl font-bold text-slate-800">
-                        No es tan simple
-                    </h3>
+            {/* Derecha: Tarjeta de texto con THEME y botón alineado a la izquierda */}
+            <div className="flex flex-col gap-[24px]">
+                <div className="w-[500px] bg-white border border-[#DFE8E2] rounded-[16px] p-[40px] shadow-sm text-center">
+                    <p className={`${THEME.fontFamily} ${THEME.primaryTextColor} ${THEME.bodyTextSize}`}>
+                        {step.text}
+                    </p>
                 </div>
 
-                <p className="text-sm text-slate-600 leading-relaxed">
-                    {step.text}
-                </p>
-
-                <div className="w-44 pt-2">
+                <div className="w-[192px] pt-[8px] self-start">
                     <SimulationButton
-                        icon={3}
+                        icon=""
                         label={step.buttonLabel || "Siguiente"}
                         onClick={onNext}
                     />

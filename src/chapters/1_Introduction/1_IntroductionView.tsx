@@ -1,7 +1,7 @@
 // src/chapters/1_Introduction/1_IntroductionView.tsx
 
 import { useState } from 'react';
-import { INTRODUCTION_NARRATIVE } from './narrative/1_IntroductionScript';
+import { INTRODUCTION_NARRATIVE } from './1_IntroductionScript.ts';
 import { SubChapter1_1 } from './subchapters/SubChapter1_1';
 import { SubChapter1_2 } from './subchapters/SubChapter1_2';
 import { SubChapter1_3 } from './subchapters/SubChapter1_3';

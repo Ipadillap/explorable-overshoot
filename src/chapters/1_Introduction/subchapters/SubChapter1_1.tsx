@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Utensils, Droplets, Zap, Mountain } from 'lucide-react';
-import { SimulationButton } from '../../../shared/components/SimulationButton';
-import type { NarrativeStep } from '../narrative/1_IntroductionScript';
+import { SimulationButton } from '../../../shared/ui/SimulationButton.tsx';
+import type {NarrativeStep} from "../../../narrative/types.ts";
 import {THEME} from "../../../shared/theme.ts";
 
 interface SubChapterProps {
